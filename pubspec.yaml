@@ -1,0 +1,62 @@
+name: easypharma
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icônes iOS
+  cupertino_icons: 1.0.8
+
+  # ---- RÉSEAU ----
+  dio: 5.9.0              # Requêtes API
+  flutter_dotenv: 6.0.0   # Variables .env
+
+  # ---- ÉTAT ----
+  provider: 6.1.5+1       # Gestion état
+
+  # ---- STOCKAGE ----
+  flutter_secure_storage: 9.2.4   # Stockage sécurisé
+  shared_preferences: 2.5.3        # Préférences locales
+  hive: 2.2.3                      # Base locale rapide
+  hive_flutter: 1.1.0              # Intégration Hive
+
+  # ---- MÉDIAS ----
+  image_picker: 1.2.1              # Sélection image
+  cached_network_image: 3.4.1      # Cache images
+  flutter_svg: 2.2.2               # Icônes SVG
+
+  # ---- PERMISSIONS ----
+  permission_handler: 12.0.1       # Gestion permissions
+
+  # ---- LOCALISATION ----
+  geolocator: 14.0.2               # Position GPS
+  geocoding: 4.0.0                 # Adresse <-> GPS
+
+  # ---- NOTIFICATIONS ----
+  firebase_messaging: 16.0.4       # Push Firebase
+  flutter_local_notifications: 19.5.0 # Notifications locales
+
+  # ---- UTILITAIRES ----
+  connectivity_plus: 7.0.0         # État réseau
+  intl: 0.20.2                      # Formats dates
+  logger: 2.6.2                     # Logs debug
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Règles code
+  flutter_lints: 5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/ 
