@@ -311,7 +311,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               CustomTextField(
                 controller: _cityController,
                 label: 'Ville',
-                hintText: 'Ex: Paris',
+                hintText: 'Ex: Douala',
               ),
 
               const SizedBox(height: 32),

@@ -138,10 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             value: UserRole.PATIENT,
                             child: const Text('Patient'),
                           ),
-                          DropdownMenuItem(
-                            value: UserRole.PHARMACIST,
-                            child: const Text('Pharmacien'),
-                          ),
+
                           DropdownMenuItem(
                             value: UserRole.DELIVERY,
                             child: const Text('Livreur'),

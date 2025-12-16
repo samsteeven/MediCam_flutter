@@ -16,8 +16,7 @@ Application mobile pour la recherche et commande de médicaments.
 
 ### Phase 3 - Navigation par rôle
 - [x] Accueil Patient
-- [ ] Accueil Pharmacien
-- [ ] Accueil Livreur
+- [x] Accueil Livreur
 
 ## Configuration
 

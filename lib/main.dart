@@ -1,3 +1,4 @@
+import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-home': (context) => const PatientHomeScreen(),
+        '/delivery-home': (context) => const DeliveryHomeScreen(),
       },
     );
   }
