@@ -1,0 +1,269 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
+import 'package:easypharma_flutter/core/utils/validators.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _rememberMe = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      await Provider.of<AuthProvider>(context, listen: false).login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      // Navigate to home based on role
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final homeRoute = authProvider.homeRoute;
+      if (homeRoute != null) {
+        Navigator.pushReplacementNamed(context, homeRoute);
+      } else {
+        // Fallback to patient home
+        Navigator.pushReplacementNamed(context, '/patient-home');
+      }
+    } catch (e) {
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  void _goToRegister() {
+    Navigator.pushNamed(context, '/register');
+  }
+
+  void _goToForgotPassword() {
+    Navigator.pushNamed(context, '/forgot-password');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    // Empêcher le retour au login si déjà connecté
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (authProvider.isAuthenticated) {
+        Navigator.pushReplacementNamed(
+          context,
+          authProvider.homeRoute ?? '/profile',
+        );
+      }
+    });
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo and welcome
+                const SizedBox(height: 40),
+                Icon(
+                  Icons.medical_services,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Bienvenue sur EasyPharma',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Connectez-vous pour accéder à votre compte',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 15),
+
+                // Email field
+                CustomTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 15),
+
+                // Password field
+                CustomTextField(
+                  controller: _passwordController,
+                  label: 'Mot de passe',
+                  obscureText: !_isPasswordVisible,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                  validator: Validators.validatePassword,
+                  isRequired: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _login(),
+                ),
+                const SizedBox(height: 15),
+
+                // Remember me and forgot password
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
+                          },
+                        ),
+                        Text(
+                          'Se souvenir de moi',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: _goToForgotPassword,
+                      child: const Text('Mot de passe oublié ?'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+
+                // Login button
+                ElevatedButton(
+                  onPressed: authProvider.isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child:
+                      authProvider.isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.lightBlue,
+                            ),
+                          )
+                          : const Text(
+                            'Se connecter',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                ),
+                const SizedBox(height: 15),
+
+                // Register link
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      'Vous n\'avez pas de compte ? ',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    TextButton(
+                      onPressed: _goToRegister,
+                      child: const Text('S\'inscrire'),
+                    ),
+                  ],
+                ),
+
+                // Role information
+                const SizedBox(height: 40),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Connectez-vous selon votre rôle',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _RoleChip(role: 'Patient', color: Colors.green),
+                          _RoleChip(role: 'Pharmacien', color: Colors.orange),
+                          _RoleChip(role: 'Livreur', color: Colors.purple),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleChip extends StatelessWidget {
+  final String role;
+  final Color color;
+
+  const _RoleChip({required this.role, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(role, style: const TextStyle(color: Colors.white)),
+      backgroundColor: color,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    );
+  }
+}

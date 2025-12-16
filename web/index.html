@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EasyPharma</title>
+  
+  <!-- CORS Configuration -->
+  <script>
+    // Configuration pour le développement
+    window.API_BASE_URL = 'http://localhost:8080';
+    
+    // Proxy simple pour contourner CORS
+    (function() {
+      const originalFetch = window.fetch;
+      
+      window.fetch = async function(url, options = {}) {
+        // Si c'est une URL relative et qu'elle commence par /api ou /auth
+        if (typeof url === 'string' && 
+            (url.startsWith('/api') || url.startsWith('/auth')) &&
+            !url.startsWith('http')) {
+          
+          const fullUrl = window.API_BASE_URL + url;
+          console.log('🔁 Proxying:', url, '→', fullUrl);
+          
+          // Cloner les options
+          const newOptions = { ...options };
+          newOptions.mode = 'cors';
+          newOptions.credentials = 'omit';
+          
+          // S'assurer des headers
+          if (!newOptions.headers) {
+            newOptions.headers = {};
+          }
+          
+          // Forcer les headers JSON
+          const headers = new Headers(newOptions.headers);
+          headers.set('Content-Type', 'application/json');
+          headers.set('Accept', 'application/json');
+          newOptions.headers = headers;
+          
+          return originalFetch(fullUrl, newOptions);
+        }
+        
+        // Pour les autres URLs, utiliser fetch normal
+        return originalFetch(url, options);
+      };
+    })();
+  </script>
+</head>
+<body>
+  <script src="main.dart.js" type="application/javascript"></script>
+</body>
+</html>
