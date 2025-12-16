@@ -10,12 +10,12 @@ Application mobile pour la recherche et commande de médicaments.
 - [x] Récupération profil
 
 ### Phase 2 - Gestion profil
-- [ ] Modification profil
-- [ ] Déconnexion
+- [x] Modification profil
+- [x] Déconnexion
 - [ ] Mot de passe oublié
 
 ### Phase 3 - Navigation par rôle
-- [ ] Accueil Patient
+- [x] Accueil Patient
 - [ ] Accueil Pharmacien
 - [ ] Accueil Livreur
 
