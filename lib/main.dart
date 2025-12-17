@@ -1,3 +1,5 @@
+import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +26,9 @@ void main() async {
   }
 
   final sharedPreferences = await SharedPreferences.getInstance();
-  print('Initial token check: ${sharedPreferences.getString(AppConstants.accessTokenKey)}');
+  print(
+    'Initial token check: ${sharedPreferences.getString(AppConstants.accessTokenKey)}',
+  );
 
   final apiService = ApiService();
   final authRepository = AuthRepository(apiService.dio, apiService);
@@ -36,11 +40,12 @@ void main() async {
         Provider<ApiService>.value(value: apiService),
         Provider<AuthRepository>.value(value: authRepository),
         ChangeNotifierProvider<AuthProvider>(
-          create: (context) => AuthProvider(
-            apiService: apiService,
-            authRepository: authRepository,
-            prefs: sharedPreferences,
-          ),
+          create:
+              (context) => AuthProvider(
+                apiService: apiService,
+                authRepository: authRepository,
+                prefs: sharedPreferences,
+              ),
           lazy: false,
         ),
       ],
@@ -52,10 +57,12 @@ void main() async {
 void _setupWebConfig() {
   print('Mode Web détecté - Configuration CORS active');
   debugDefaultTargetPlatformOverride = TargetPlatform.android;
-  
+
   debugPrint = (String? message, {int? wrapWidth}) {
     if (message != null) {
-      if (message.contains('CORS') || message.contains('Dio') || message.contains('XMLHttpRequest')) {
+      if (message.contains('CORS') ||
+          message.contains('Dio') ||
+          message.contains('XMLHttpRequest')) {
         print('⚠️ [WEB] $message');
       } else {
         print(message);
@@ -82,6 +89,8 @@ class MyApp extends StatelessWidget {
         '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-home': (context) => const PatientHomeScreen(),
         '/delivery-home': (context) => const DeliveryHomeScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/reset-password': (context) => const ResetPasswordScreen(),
       },
     );
   }
