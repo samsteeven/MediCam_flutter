@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
 import 'package:easypharma_flutter/core/utils/validators.dart';
 
@@ -37,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
       // Navigate to home based on role
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final homeRoute = authProvider.homeRoute;
+      // Reset navigation tabs to home when arriving
+      context.read<NavigationProvider>().reset();
       if (homeRoute != null) {
         Navigator.pushReplacementNamed(context, homeRoute);
       } else {
@@ -231,15 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _RoleChip(role: 'Patient', color: Colors.green),
-                          _RoleChip(role: 'Pharmacien', color: Colors.orange),
-                          _RoleChip(role: 'Livreur', color: Colors.purple),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -248,22 +242,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _RoleChip extends StatelessWidget {
-  final String role;
-  final Color color;
-
-  const _RoleChip({required this.role, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      label: Text(role, style: const TextStyle(color: Colors.white)),
-      backgroundColor: color,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }

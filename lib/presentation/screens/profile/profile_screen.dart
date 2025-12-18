@@ -76,8 +76,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           fontSize: 20,
           fontWeight: FontWeight.w500,
         ),
-
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadUserData,
+            tooltip: 'Actualiser',
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {

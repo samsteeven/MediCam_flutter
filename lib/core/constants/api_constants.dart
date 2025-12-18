@@ -1,8 +1,8 @@
 class ApiConstants {
   // Base URL du backend Spring Boot
-  static const String baseUrl = 'http://localhost:8080/api/v1';
+  // static const String baseUrl = 'http://localhost:8080/api/v1';
   // pour émulateur Android (si tu utilises Android Studio)
-  // static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
+  static const String baseUrl = 'http://192.168.1.179:8080/api/v1';
 
   // Endpoints d'authentification
   static const String register = '/auth/register';

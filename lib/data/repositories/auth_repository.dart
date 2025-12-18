@@ -22,10 +22,7 @@ class AuthRepository {
       print('=== LOGIN REQUEST ===');
       print('Data: $data');
 
-      final response = await _dio.post(
-        ApiConstants.login,
-        data: data,
-      );
+      final response = await _dio.post(ApiConstants.login, data: data);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
@@ -76,10 +73,7 @@ class AuthRepository {
       print('=== AUTH REPOSITORY REGISTER ===');
       print('Data: $data');
 
-      final response = await _dio.post(
-        ApiConstants.register,
-        data: data,
-      );
+      final response = await _dio.post(ApiConstants.register, data: data);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = response.data;
@@ -194,7 +188,9 @@ class AuthRepository {
         final dynamic responseData = response.data;
 
         if (responseData is Map) {
-          final Map<String, dynamic> dataMap = Map<String, dynamic>.from(responseData);
+          final Map<String, dynamic> dataMap = Map<String, dynamic>.from(
+            responseData,
+          );
 
           if (dataMap['success'] == true && dataMap['data'] != null) {
             return User.fromJson(dataMap['data']);
@@ -206,7 +202,9 @@ class AuthRepository {
         }
         throw Exception('Format de réponse invalide');
       } else {
-        throw Exception('Échec de la mise à jour du profil (${response.statusCode})');
+        throw Exception(
+          'Échec de la mise à jour du profil (${response.statusCode})',
+        );
       }
     } on DioException catch (e) {
       print('=== UPDATE PROFILE DIO ERROR ===');
@@ -226,15 +224,12 @@ class AuthRepository {
   }
 
   // === AUTRES MÉTHODES (optionnelles) ===
-  
+
   Future<AuthResponse> refreshToken(String refreshToken) async {
     try {
       final data = {'refreshToken': refreshToken};
 
-      final response = await _dio.post(
-        ApiConstants.refreshToken,
-        data: data,
-      );
+      final response = await _dio.post(ApiConstants.refreshToken, data: data);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
@@ -275,18 +270,40 @@ class AuthRepository {
 
   Future<void> forgotPassword(String email) async {
     try {
+      print('=== FORGOT PASSWORD REQUEST ===');
+      print('Email: $email');
+
       final response = await _dio.post(
         ApiConstants.forgotPassword,
         data: {'email': email},
       );
 
-      if (response.statusCode != 200) {
-        throw Exception(
-          'Erreur lors de l\'envoi de l\'email de réinitialisation',
-        );
+      print('=== FORGOT PASSWORD RESPONSE ===');
+      print('Status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = response.data;
+
+        // Vérifier le format de la réponse
+        if (responseData['success'] == true) {
+          print('Email de réinitialisation envoyé avec succès!');
+          return;
+        } else {
+          throw Exception(
+            responseData['message'] ?? 'Erreur lors de l\'envoi de l\'email',
+          );
+        }
+      } else {
+        throw Exception('Erreur HTTP ${response.statusCode}');
       }
     } on DioException catch (e) {
+      print('=== FORGOT PASSWORD DIO ERROR ===');
+      print('Error type: ${e.type}');
+      print('Error message: ${e.message}');
       if (e.response != null) {
+        print('Status: ${e.response!.statusCode}');
+        print('Response data: ${e.response!.data}');
         final errorData = e.response!.data;
         throw Exception(
           errorData['message'] ?? 'Erreur lors de l\'envoi de l\'email',
@@ -295,6 +312,8 @@ class AuthRepository {
         throw Exception('Erreur de connexion: ${e.message}');
       }
     } catch (e) {
+      print('=== FORGOT PASSWORD UNEXPECTED ERROR ===');
+      print('Error: $e');
       throw Exception('Erreur inattendue: $e');
     }
   }
@@ -304,19 +323,42 @@ class AuthRepository {
     required String newPassword,
   }) async {
     try {
+      print('=== RESET PASSWORD REQUEST ===');
+      print('Token: ${token.substring(0, 20)}...');
+      print('New password length: ${newPassword.length}');
+
       final response = await _dio.post(
         ApiConstants.resetPassword,
-        data: {
-          'token': token,
-          'newPassword': newPassword,
-        },
+        data: {'token': token, 'newPassword': newPassword},
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Erreur lors de la réinitialisation du mot de passe');
+      print('=== RESET PASSWORD RESPONSE ===');
+      print('Status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = response.data;
+
+        // Vérifier le format de la réponse
+        if (responseData['success'] == true) {
+          print('Password reset successful!');
+          return;
+        } else {
+          throw Exception(
+            responseData['message'] ??
+                'Erreur lors de la réinitialisation du mot de passe',
+          );
+        }
+      } else {
+        throw Exception('Erreur HTTP ${response.statusCode}');
       }
     } on DioException catch (e) {
+      print('=== RESET PASSWORD DIO ERROR ===');
+      print('Error type: ${e.type}');
+      print('Error message: ${e.message}');
       if (e.response != null) {
+        print('Status: ${e.response!.statusCode}');
+        print('Response data: ${e.response!.data}');
         final errorData = e.response!.data;
         throw Exception(
           errorData['message'] ?? 'Erreur lors de la réinitialisation',
@@ -325,6 +367,8 @@ class AuthRepository {
         throw Exception('Erreur de connexion: ${e.message}');
       }
     } catch (e) {
+      print('=== RESET PASSWORD UNEXPECTED ERROR ===');
+      print('Error: $e');
       throw Exception('Erreur inattendue: $e');
     }
   }

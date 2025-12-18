@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,8 +34,12 @@ class _SplashScreenState extends State<SplashScreen> {
     print('homeRoute: ${authProvider.homeRoute}');
 
     if (authProvider.isAuthenticated) {
-      print('Navigation vers: /profile');
-      Navigator.pushReplacementNamed(context, '/profile');
+      // Rediriger vers l'écran d'accueil basé sur le rôle
+      final homeRoute = authProvider.homeRoute ?? '/patient-home';
+      print('Navigation vers: $homeRoute');
+      // Reset tabs before entering home
+      if (mounted) context.read<NavigationProvider>().reset();
+      Navigator.pushReplacementNamed(context, homeRoute);
     } else {
       print('Navigation vers: /login');
       Navigator.pushReplacementNamed(context, '/login');

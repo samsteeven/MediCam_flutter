@@ -90,219 +90,216 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouveau mot de passe'),
-        titleTextStyle: TextStyle(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // En-tête
-              const SizedBox(height: 40),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      _passwordReset ? Icons.check_circle : Icons.password,
-                      size: 64,
-                      color: _passwordReset ? Colors.green : Colors.blue,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo and welcome
+                const SizedBox(height: 30),
+                Icon(
+                  _passwordReset ? Icons.check_circle : Icons.password,
+                  size: 80,
+                  color:
                       _passwordReset
-                          ? 'Mot de passe réinitialisé !'
-                          : 'Créer un nouveau mot de passe',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: _passwordReset ? Colors.green : Colors.blue,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _passwordReset
-                          ? 'Redirection vers la page de connexion...'
-                          : 'Veuillez créer un nouveau mot de passe sécurisé',
-                      style: const TextStyle(color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Message de succès
-              if (_passwordReset)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.green.shade200),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Votre mot de passe a été réinitialisé avec succès.',
-                          style: TextStyle(color: Colors.green),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              if (!_passwordReset) ...[
-                // Champ token (caché par défaut)
-                ExpansionTile(
-                  title: const Text(
-                    'Token de réinitialisation',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  initiallyExpanded: false,
-                  children: [
-                    CustomTextField(
-                      controller: _tokenController,
-                      label: 'Token',
-                      validator:
-                          (value) => Validators.validateRequired(
-                            value,
-                            fieldName: 'token',
-                          ),
-                      isRequired: true,
-                    ),
-                  ],
+                          ? Colors.green
+                          : Theme.of(context).primaryColor,
                 ),
                 const SizedBox(height: 20),
-
-                // Champ nouveau mot de passe
-                CustomTextField(
-                  controller: _newPasswordController,
-                  label: 'Nouveau mot de passe',
-                  obscureText: !_isPasswordVisible,
-                  validator: Validators.validatePassword,
-                  isRequired: true,
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                Text(
+                  _passwordReset
+                      ? 'Mot de passe réinitialisé !'
+                      : 'Créer un nouveau mot de passe',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
-
-                // Champ confirmation mot de passe
-                CustomTextField(
-                  controller: _confirmPasswordController,
-                  label: 'Confirmer le mot de passe',
-                  obscureText: !_isConfirmPasswordVisible,
-                  validator:
-                      (value) => Validators.validateConfirmPassword(
-                        value,
-                        _newPasswordController.text,
-                      ),
-                  isRequired: true,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isConfirmPasswordVisible
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Règles de mot de passe
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Le mot de passe doit contenir :',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      _buildPasswordRule('Au moins 8 caractères'),
-                      _buildPasswordRule('Une majuscule et une minuscule'),
-                      _buildPasswordRule('Un chiffre'),
-                      _buildPasswordRule('Un caractère spécial'),
-                    ],
-                  ),
+                const SizedBox(height: 10),
+                Text(
+                  _passwordReset
+                      ? 'Redirection vers la page de connexion...'
+                      : 'Veuillez créer un nouveau mot de passe sécurisé',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
 
-                // Bouton de réinitialisation
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _resetPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
+                // Success message
+                if (_passwordReset)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Votre mot de passe a été réinitialisé avec succès.',
+                            style: TextStyle(color: Colors.green),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                          : const Text(
-                            'Réinitialiser le mot de passe',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                ),
-                const SizedBox(height: 20),
-              ],
 
-              // Bouton retour
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/login');
-                },
-                child: const Text('Retour à la connexion'),
-              ),
-            ],
+                if (!_passwordReset) ...[
+                  // Token field (hidden by default)
+                  ExpansionTile(
+                    title: const Text(
+                      'Token de réinitialisation',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    initiallyExpanded: false,
+                    children: [
+                      CustomTextField(
+                        controller: _tokenController,
+                        label: 'Token',
+                        validator:
+                            (value) => Validators.validateRequired(
+                              value,
+                              fieldName: 'token',
+                            ),
+                        isRequired: true,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // New password field
+                  CustomTextField(
+                    controller: _newPasswordController,
+                    label: 'Nouveau mot de passe',
+                    obscureText: !_isPasswordVisible,
+                    validator: Validators.validatePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Confirm password field
+                  CustomTextField(
+                    controller: _confirmPasswordController,
+                    label: 'Confirmer le mot de passe',
+                    obscureText: !_isConfirmPasswordVisible,
+                    validator:
+                        (value) => Validators.validateConfirmPassword(
+                          value,
+                          _newPasswordController.text,
+                        ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                    ),
+                    isRequired: true,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password rules
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Le mot de passe doit contenir :',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        _buildPasswordRule('Au moins 8 caractères'),
+                        _buildPasswordRule('Une majuscule et une minuscule'),
+                        _buildPasswordRule('Un chiffre'),
+                        _buildPasswordRule('Un caractère spécial'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Reset button
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _resetPassword,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.lightBlue,
+                              ),
+                            )
+                            : const Text(
+                              'Réinitialiser le mot de passe',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Back to login
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      'Retourner à ',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: const Text('la connexion'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

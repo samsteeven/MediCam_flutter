@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/repositories/auth_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/core/constants/app_constants.dart';
 
 // Import des écrans...
@@ -48,6 +49,9 @@ void main() async {
               ),
           lazy: false,
         ),
+        ChangeNotifierProvider<NavigationProvider>(
+          create: (context) => NavigationProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -83,14 +87,39 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
+        '/login': (context) => _buildAuthScreen(context, const LoginScreen()),
+        '/register':
+            (context) => _buildAuthScreen(context, const RegisterScreen()),
         '/profile': (context) => const ProfileScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-home': (context) => const PatientHomeScreen(),
         '/delivery-home': (context) => const DeliveryHomeScreen(),
-        '/forgot-password': (context) => const ForgotPasswordScreen(),
-        '/reset-password': (context) => const ResetPasswordScreen(),
+        '/forgot-password':
+            (context) =>
+                _buildAuthScreen(context, const ForgotPasswordScreen()),
+        '/reset-password':
+            (context) => _buildAuthScreen(context, const ResetPasswordScreen()),
+      },
+    );
+  }
+
+  // Protection: empêcher de naviguer aux écrans d'auth si déjà connecté
+  Widget _buildAuthScreen(BuildContext context, Widget screen) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        if (authProvider.isAuthenticated) {
+          // Si déjà connecté, rediriger vers l'accueil
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacementNamed(
+              context,
+              authProvider.homeRoute ?? '/patient-home',
+            );
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return screen;
       },
     );
   }

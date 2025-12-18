@@ -157,6 +157,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           fontSize: 20,
           fontWeight: FontWeight.w500,
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
