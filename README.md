@@ -12,7 +12,7 @@ Application mobile pour la recherche et commande de médicaments.
 ### Phase 2 - Gestion profil
 - [x] Modification profil
 - [x] Déconnexion
-- [ ] Mot de passe oublié
+- [x] Mot de passe oublié
 
 ### Phase 3 - Navigation par rôle
 - [x] Accueil Patient
