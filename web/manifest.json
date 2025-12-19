@@ -1,6 +1,6 @@
 {
-    "name": "easypharma",
-    "short_name": "easypharma",
+    "name": "easypharma_flutter",
+    "short_name": "easypharma_flutter",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

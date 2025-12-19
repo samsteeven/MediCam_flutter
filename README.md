@@ -1,17 +1,25 @@
-# easypharma
+# EasyPharma Flutter Application
 
-A new Flutter project.
+Application mobile pour la recherche et commande de médicaments.
 
-## Getting Started
+## Structure du projet
 
-This project is a starting point for a Flutter application.
+### Phase 1 - Authentification
+- [x] Connexion
+- [x] Inscription
+- [x] Récupération profil
 
-A few resources to get you started if this is your first Flutter project:
+### Phase 2 - Gestion profil
+- [x] Modification profil
+- [x] Déconnexion
+- [x] Mot de passe oublié
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Phase 3 - Navigation par rôle
+- [x] Accueil Patient
+- [x] Accueil Livreur
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# MediCam_flutter
+## Configuration
+
+1. Installer les dépendances:
+```bash
+flutter pub get
