@@ -140,7 +140,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.green.shade200),
                     ),
-                    child: const Row(
+                    child: const Wrap(
                       children: [
                         Icon(Icons.check_circle, color: Colors.green),
                         SizedBox(width: 12),
@@ -309,7 +309,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget _buildPasswordRule(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
+      child: Wrap(
         children: [
           Icon(
             Icons.check_circle,

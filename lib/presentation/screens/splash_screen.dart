@@ -50,86 +50,87 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue.shade900,
-              Colors.blue.shade700,
-              Colors.blue.shade500,
-            ],
-          ),
-        ),
+        decoration: BoxDecoration(color: Colors.white),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo/Icon
+              // Logo/Icon with soft shadow
               Container(
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
+                      color: Colors.blue.shade100.withOpacity(0.4),
+                      blurRadius: 40,
+                      spreadRadius: 10,
                     ),
                   ],
                 ),
                 child: Icon(
                   Icons.medical_services,
                   size: 60,
-                  color: Colors.blue.shade700,
+                  color: Colors.blue.shade600,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               // App Name
-              const Text(
+              Text(
                 'EasyPharma',
                 style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.5,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.blue.shade700,
+                  letterSpacing: 0.5,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               // Tagline
-              const Text(
+              Text(
                 'Votre pharmacie en ligne',
-                style: TextStyle(fontSize: 16, color: Colors.white70),
-              ),
-              const SizedBox(height: 40),
-
-              // Loading indicator
-              Container(
-                width: 50,
-                height: 50,
-                padding: const EdgeInsets.all(10),
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.blue.shade400,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 50),
+
+              // Loading indicator
+              SizedBox(
+                width: 25,
+                height: 25,
+                child: CircularProgressIndicator(
+                  color: Colors.blue.shade400,
+                  strokeWidth: 2.5,
+                ),
+              ),
+              const SizedBox(height: 24),
 
               // Loading text
-              const Text(
+              Text(
                 'Chargement...',
-                style: TextStyle(fontSize: 14, color: Colors.white70),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue.shade500,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 60),
 
               // Version info
-              const Text(
+              Text(
                 'Version 1.0.0',
-                style: TextStyle(fontSize: 12, color: Colors.white54),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.blue.shade300,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ],
           ),

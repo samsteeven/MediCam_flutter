@@ -150,76 +150,102 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Modifier le profil'),
-        titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w500,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          'Modifier le profil',
+          style: TextStyle(
+            color: Colors.blue.shade700,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+          ),
         ),
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.blue.shade700),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: Icon(Icons.check, color: Colors.blue.shade700),
             onPressed: _updateProfile,
             tooltip: 'Enregistrer',
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // En-tête
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.person, size: 64, color: Colors.blue),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Modifiez vos informations',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade300, Colors.blue.shade700],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Seuls les champs obligatoires sont requis',
-                        style: TextStyle(color: Colors.grey),
+                      child: const Icon(
+                        Icons.person_outline,
+                        size: 36,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Mettez à jour vos informations',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Les champs avec * sont obligatoires',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
               const SizedBox(height: 24),
 
               // Informations personnelles
-              const Text(
+              Text(
                 'Informations personnelles',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: Colors.blue.shade700,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Prénom et nom',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
               ),
 
               const SizedBox(height: 12),
@@ -335,11 +361,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        side: BorderSide(color: Colors.blue.shade400),
+                        side: BorderSide(color: Colors.blue.shade100),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Annuler',
-                        style: TextStyle(color: Colors.blue),
+                        style: TextStyle(color: Colors.blue.shade700),
                       ),
                     ),
                   ),
@@ -348,7 +374,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: ElevatedButton(
                       onPressed: _updateProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.blue.shade700,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(

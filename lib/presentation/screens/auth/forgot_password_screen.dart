@@ -115,7 +115,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.green.shade200),
                     ),
-                    child: Row(
+                    child: Wrap(
                       children: [
                         const Icon(Icons.check_circle, color: Colors.green),
                         const SizedBox(width: 12),
@@ -159,7 +159,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: const Wrap(
                     children: [
                       Icon(Icons.info_outline, size: 16, color: Colors.blue),
                       SizedBox(width: 8),

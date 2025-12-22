@@ -7,9 +7,12 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/repositories/auth_repository.dart';
+import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
 import 'package:easypharma_flutter/core/constants/app_constants.dart';
+import 'package:easypharma_flutter/presentation/screens/home/medication_search_screen.dart';
 
 // Import des écrans...
 import 'package:easypharma_flutter/presentation/screens/splash_screen.dart';
@@ -51,6 +54,12 @@ void main() async {
         ),
         ChangeNotifierProvider<NavigationProvider>(
           create: (context) => NavigationProvider(),
+        ),
+        ChangeNotifierProvider<MedicationProvider>(
+          create:
+              (context) => MedicationProvider(
+                MedicationRepository(context.read<ApiService>().dio),
+              ),
         ),
       ],
       child: const MyApp(),
@@ -94,6 +103,7 @@ class MyApp extends StatelessWidget {
         '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-home': (context) => const PatientHomeScreen(),
         '/delivery-home': (context) => const DeliveryHomeScreen(),
+        '/medication-search': (context) => const MedicationSearchScreen(),
         '/forgot-password':
             (context) =>
                 _buildAuthScreen(context, const ForgotPasswordScreen()),
