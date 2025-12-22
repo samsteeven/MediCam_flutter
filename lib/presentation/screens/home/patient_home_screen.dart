@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
+import 'package:easypharma_flutter/presentation/widgets/medication_search_bar.dart';
 
 class PatientHomeScreen extends StatelessWidget {
   const PatientHomeScreen({super.key});
@@ -20,25 +21,33 @@ class PatientHomeScreen extends StatelessWidget {
             return true;
           },
           child: Scaffold(
+            backgroundColor: Colors.white,
             appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
               leading:
                   navProvider.currentIndex != 0
                       ? IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.blue.shade700,
+                        ),
                         onPressed: () => navProvider.setIndex(0),
                       )
                       : null,
-              title: const Text('EasyPharma'),
-              titleTextStyle: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+              title: Text(
+                'EasyPharma',
+                style: TextStyle(
+                  color: Colors.blue.shade700,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
               ),
               automaticallyImplyLeading: false,
-              elevation: 2,
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.person, color: Colors.white),
+                  icon: Icon(Icons.person_outline, color: Colors.blue.shade700),
                   onPressed: () {
                     Navigator.pushNamed(context, '/profile');
                   },
@@ -48,21 +57,29 @@ class PatientHomeScreen extends StatelessWidget {
             ),
             body: _buildContent(context, navProvider.currentIndex),
             bottomNavigationBar: BottomNavigationBar(
+              backgroundColor: Colors.white,
+              selectedItemColor: Colors.blue.shade700,
+              unselectedItemColor: Colors.grey.shade400,
+              type: BottomNavigationBarType.fixed,
               items: const [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
+                  icon: Icon(Icons.home_outlined),
+                  activeIcon: Icon(Icons.home),
                   label: 'Accueil',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.search),
+                  icon: Icon(Icons.search_outlined),
+                  activeIcon: Icon(Icons.search),
                   label: 'Recherche',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.shopping_cart),
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  activeIcon: Icon(Icons.shopping_cart),
                   label: 'Panier',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
+                  icon: Icon(Icons.history_outlined),
+                  activeIcon: Icon(Icons.history),
                   label: 'Historique',
                 ),
               ],
@@ -94,66 +111,110 @@ class PatientHomeScreen extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
+          // === BARRE DE RECHERCHE DE MÉDICAMENTS ===
+          const MedicationSearchBar(showButton: true),
+          const SizedBox(height: 16),
+
+          // === HEADER DE BIENVENUE ===
           Container(
             width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue[600]!, Colors.blue[400]!],
+                colors: [Colors.blue.shade300, Colors.blue.shade600],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-            ),
-              child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'Bienvenue Mr. ',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Consumer<AuthProvider>(
-                  builder:
-                      (context, authProvider, _) => Text(
-                        authProvider.user?.lastName ?? 'Utilisateur',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-
-                          color: Colors.white,
-                        ),
-                      ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade600.withOpacity(0.4),
+                  blurRadius: 15,
+                  spreadRadius: 2,
                 ),
               ],
             ),
-         ),
-          Padding(
-            padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.shopping_bag,
-                        title: 'Commandes',
-                        value: '0',
-                        color: Colors.green,
+                    const Text(
+                      'Bienvenue, ',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.favorite,
-                        title: 'Favoris',
-                        value: '0',
-                        color: Colors.orange,
-                      ),
+                    Consumer<AuthProvider>(
+                      builder:
+                          (context, authProvider, _) => Text(
+                            authProvider.user?.firstName ?? 'Utilisateur',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Trouvez vos médicaments en quelques clics',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // === STATISTIQUES ===
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.shopping_bag_outlined,
+                    title: 'Commandes',
+                    value: '0',
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.favorite_outline,
+                    title: 'Favoris',
+                    value: '0',
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // === RACCOURCIS ===
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Accès rapide',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.blue.shade700,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 GridView.count(
@@ -164,86 +225,103 @@ class PatientHomeScreen extends StatelessWidget {
                   mainAxisSpacing: 12,
                   children: [
                     _buildShortcutCard(
-                      icon: Icons.search,
+                      icon: Icons.search_outlined,
                       title: 'Recherche',
                       color: Colors.blue,
-                      onTap: () {},
+                      onTap:
+                          () => context.read<NavigationProvider>().setIndex(1),
                     ),
                     _buildShortcutCard(
-                      icon: Icons.shopping_cart,
+                      icon: Icons.shopping_cart_outlined,
                       title: 'Panier',
                       color: Colors.green,
                       onTap:
                           () => context.read<NavigationProvider>().setIndex(2),
                     ),
                     _buildShortcutCard(
-                      icon: Icons.history,
+                      icon: Icons.history_outlined,
                       title: 'Historique',
-                      color: Colors.blue,
+                      color: Colors.orange,
                       onTap:
                           () => context.read<NavigationProvider>().setIndex(3),
                     ),
                     _buildShortcutCard(
-                      icon: Icons.person,
+                      icon: Icons.person_outline,
                       title: 'Mon Profil',
                       color: Colors.purple,
                       onTap: () => Navigator.pushNamed(context, '/profile'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Offres spéciales',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // === SECTION OFFRES SPÉCIALES ===
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Offres spéciales',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.blue.shade700,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '-15% sur votre première commande',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Utilisez le code WELCOME15 lors de votre commande',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final authProvider = context.read<AuthProvider>();
-                      await authProvider.logout();
-                      context.read<NavigationProvider>().reset();
-                      Navigator.pushReplacementNamed(context, '/login');
-                    },
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Se déconnecter'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
+                _buildOfferCard(),
               ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildOfferCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade50, Colors.blue.shade100],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_offer_outlined, color: Colors.blue.shade700),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '-15% sur votre première commande',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Utilisez le code WELCOME15 lors de votre commande',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.blue.shade600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -255,38 +333,54 @@ class PatientHomeScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String value,
-    required Color color,
+    required MaterialColor color,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 24),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: color.shade100.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 45,
+            height: 45,
+            decoration: BoxDecoration(
+              color: color.shade50,
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            child: Icon(icon, color: color.shade700, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color.shade700,
             ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -294,14 +388,24 @@ class PatientHomeScreen extends StatelessWidget {
   static Widget _buildShortcutCard({
     required IconData icon,
     required String title,
-    required Color color,
+    required MaterialColor color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: color.shade100.withOpacity(0.2),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -309,16 +413,20 @@ class PatientHomeScreen extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.shade50,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 28),
+              child: Icon(icon, color: color.shade700, size: 26),
             ),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.blue.shade800,
+              ),
             ),
           ],
         ),
@@ -331,16 +439,33 @@ class PatientHomeScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            'Recherche',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.search_outlined,
+              size: 40,
+              color: Colors.blue.shade700,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Recherche de médicaments',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.blue.shade700,
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Bientôt disponible',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          Text(
+            'Trouvez rapidement les médicaments\nque vous recherchez',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -352,16 +477,33 @@ class PatientHomeScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.green.shade100,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.shopping_cart_outlined,
+              size: 40,
+              color: Colors.green.shade700,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
             'Panier',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.blue.shade700,
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Votre panier est vide',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -373,16 +515,33 @@ class PatientHomeScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.history_outlined,
+              size: 40,
+              color: Colors.orange.shade700,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
             'Historique',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.blue.shade700,
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Aucune commande pour le moment',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
         ],
       ),

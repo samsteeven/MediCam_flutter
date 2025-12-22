@@ -17,12 +17,14 @@ dependencies:
   json_annotation: ^4.9.0
   google_fonts: ^6.3.2
   http: ^1.6.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   build_runner: ^2.5.2
   json_serializable: ^6.7.1
   flutter_test:
     sdk: flutter
+  mocktail: ^0.3.0
   dio: ^5.3.3
   provider: ^6.1.1
   shared_preferences: ^2.2.2
@@ -37,3 +39,8 @@ flutter:
   assets:
     - assets/images/
     - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
