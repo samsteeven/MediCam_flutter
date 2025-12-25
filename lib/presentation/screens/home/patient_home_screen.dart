@@ -3,10 +3,34 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/widgets/medication_search_bar.dart';
+import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 
-class PatientHomeScreen extends StatelessWidget {
+class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
   static const routeName = '/patient-home';
+
+  @override
+  State<PatientHomeScreen> createState() => _PatientHomeScreenState();
+}
+
+class _PatientHomeScreenState extends State<PatientHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Tenter de récupérer la localisation si elle n'est pas déjà là
+      // Cela déclenchera les demandes de permission/service natives
+      final locationProvider = context.read<LocationProvider>();
+      if (locationProvider.userLocation == null) {
+        locationProvider.ensureLocation();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

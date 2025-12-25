@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/data/models/order_model.dart';
+import 'package:easypharma_flutter/core/constants/api_constants.dart';
 
 class OrdersRepository {
   final Dio _dio;
@@ -10,7 +11,7 @@ class OrdersRepository {
   /// GET /api/v1/orders/{id}
   Future<Order> getOrderDetails(String orderId) async {
     try {
-      final response = await _dio.get('/api/v1/orders/$orderId');
+      final response = await _dio.get('${ApiConstants.orders}/$orderId');
 
       if (response.statusCode == 200) {
         final data =
@@ -29,7 +30,7 @@ class OrdersRepository {
   /// GET /api/v1/orders/my-orders
   Future<List<Order>> getMyOrders() async {
     try {
-      final response = await _dio.get('/api/v1/orders/my-orders');
+      final response = await _dio.get(ApiConstants.myOrders);
 
       if (response.statusCode == 200) {
         final List<dynamic> data =
@@ -50,9 +51,7 @@ class OrdersRepository {
   /// GET /api/v1/orders/pharmacy-orders/{pharmacyId}
   Future<List<Order>> getPharmacyOrders(String pharmacyId) async {
     try {
-      final response = await _dio.get(
-        '/api/v1/orders/pharmacy-orders/$pharmacyId',
-      );
+      final response = await _dio.get(ApiConstants.pharmacyOrders(pharmacyId));
 
       if (response.statusCode == 200) {
         final List<dynamic> data =
@@ -74,7 +73,7 @@ class OrdersRepository {
   Future<Order> createOrder(CreateOrderRequest request) async {
     try {
       final response = await _dio.post(
-        '/api/v1/orders',
+        ApiConstants.orders,
         data: request.toJson(),
       );
 
@@ -96,7 +95,7 @@ class OrdersRepository {
   Future<Order> updateOrderStatus(String orderId, String newStatus) async {
     try {
       final response = await _dio.patch(
-        '/api/v1/orders/$orderId/status',
+        '${ApiConstants.orders}/$orderId/status',
         data: {'status': newStatus},
       );
 
@@ -111,5 +110,16 @@ class OrdersRepository {
     } on DioException catch (e) {
       throw Exception('Erreur réseau: ${e.message}');
     }
+  }
+
+  Future<void> updateDeliveryLocation(
+    String deliveryId,
+    double lat,
+    double lon,
+  ) async {
+    await _dio.patch(
+      ApiConstants.deliveryLocation(deliveryId),
+      data: {'latitude': lat, 'longitude': lon},
+    );
   }
 }

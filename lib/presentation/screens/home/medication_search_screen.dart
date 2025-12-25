@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
+import 'package:app_settings/app_settings.dart';
 
 class MedicationSearchScreen extends StatefulWidget {
   const MedicationSearchScreen({super.key});
@@ -91,7 +93,7 @@ class _MedicationSearchScreenState extends State<MedicationSearchScreen> {
       controller: _searchController,
       decoration: InputDecoration(
         hintText: 'Rechercher un médicament...',
-        hintStyle: TextStyle(color: Colors.grey.shade400),
+        hintStyle: TextStyle(color: Colors.grey),
         prefixIcon: Icon(Icons.search_outlined, color: Colors.blue.shade600),
         suffixIcon:
             _searchController.text.isNotEmpty
@@ -124,18 +126,12 @@ class _MedicationSearchScreenState extends State<MedicationSearchScreen> {
       onChanged: (value) {
         setState(() {});
         if (value.length > 2) {
-          provider.searchMedications(
-            value,
-            therapeuticClass: _selectedCategory,
-          );
+          _searchWithLocation(provider, value);
         }
       },
       onSubmitted: (value) {
         if (value.isNotEmpty) {
-          provider.searchMedications(
-            value,
-            therapeuticClass: _selectedCategory,
-          );
+          _searchWithLocation(provider, value);
         }
       },
     );
@@ -597,5 +593,40 @@ class _MedicationSearchScreenState extends State<MedicationSearchScreen> {
       case TherapeuticClass.AUTRES:
         return Colors.grey;
     }
+  }
+
+  Future<void> _searchWithLocation(
+    MedicationProvider provider,
+    String query,
+  ) async {
+    final locationProvider = context.read<LocationProvider>();
+    // Tente de récupérer la position (redemande si nécessaire)
+    await locationProvider.ensureLocation();
+
+    if (!mounted) return;
+
+    if (locationProvider.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(locationProvider.error!),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Réglages',
+            textColor: Colors.white,
+            onPressed: () {
+              AppSettings.openAppSettings(type: AppSettingsType.location);
+            },
+          ),
+        ),
+      );
+    }
+
+    provider.searchMedications(
+      query,
+      therapeuticClass: _selectedCategory,
+      userLat: locationProvider.userLocation?.latitude,
+      userLon: locationProvider.userLocation?.longitude,
+    );
   }
 }

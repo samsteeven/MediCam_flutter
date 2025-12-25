@@ -39,6 +39,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
               controller: _controller,
               decoration: InputDecoration(
                 hintText: 'Rechercher un médicament',
+                hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon:
                     _controller.text.isNotEmpty

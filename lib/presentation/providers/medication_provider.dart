@@ -36,6 +36,8 @@ class MedicationProvider extends ChangeNotifier {
   Future<void> searchMedications(
     String query, {
     TherapeuticClass? therapeuticClass,
+    double? userLat,
+    double? userLon,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -48,6 +50,8 @@ class MedicationProvider extends ChangeNotifier {
         name: query,
         therapeuticClass:
             therapeuticClass?.toString().split('.').last.toUpperCase(),
+        userLat: userLat,
+        userLon: userLon,
       );
 
       _searchResults = _sortMedications(results);

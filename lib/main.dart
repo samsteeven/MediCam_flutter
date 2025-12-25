@@ -1,3 +1,4 @@
+import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
@@ -30,11 +31,10 @@ void main() async {
   }
 
   final sharedPreferences = await SharedPreferences.getInstance();
-  print(
-    'Initial token check: ${sharedPreferences.getString(AppConstants.accessTokenKey)}',
-  );
+
 
   final apiService = ApiService();
+  await apiService.ensureDioReady();
   final authRepository = AuthRepository(apiService.dio, apiService);
 
   runApp(
@@ -43,6 +43,9 @@ void main() async {
         Provider<SharedPreferences>.value(value: sharedPreferences),
         Provider<ApiService>.value(value: apiService),
         Provider<AuthRepository>.value(value: authRepository),
+        ChangeNotifierProvider<LocationProvider>(
+        create: (context) => LocationProvider(), 
+      ),
         ChangeNotifierProvider<AuthProvider>(
           create:
               (context) => AuthProvider(
