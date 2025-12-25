@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
+import 'package:easypharma_flutter/core/constants/api_constants.dart';
 
 class PharmacyInventoryRepository {
   final Dio _dio;
@@ -13,7 +14,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/$pharmacyId/medications',
+        ApiConstants.pharmacyMedications(pharmacyId),
       );
 
       if (response.statusCode == 200) {
@@ -45,7 +46,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.post(
-        '/api/v1/pharmacies/$pharmacyId/medications',
+        ApiConstants.pharmacyMedications(pharmacyId),
         data: {
           'medicationId': medicationId,
           'price': price,
@@ -77,7 +78,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.patch(
-        '/api/v1/pharmacies/$pharmacyId/medications/$medicationId/stock',
+        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId/stock',
         data: {'quantityInStock': quantityInStock},
       );
 
@@ -105,7 +106,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.patch(
-        '/api/v1/pharmacies/$pharmacyId/medications/$medicationId/price',
+        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId/price',
         data: {'price': price},
       );
 
@@ -129,7 +130,7 @@ class PharmacyInventoryRepository {
   Future<void> removeMedication(String pharmacyId, String medicationId) async {
     try {
       final response = await _dio.delete(
-        '/api/v1/pharmacies/$pharmacyId/medications/$medicationId',
+        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId',
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

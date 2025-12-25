@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
+import 'package:easypharma_flutter/core/constants/api_constants.dart';
 
 class PharmaciesRepository {
   final Dio _dio;
@@ -10,7 +11,7 @@ class PharmaciesRepository {
   /// GET /api/v1/pharmacies
   Future<List<Pharmacy>> getAllPharmacies() async {
     try {
-      final response = await _dio.get('/api/v1/pharmacies');
+      final response = await _dio.get(ApiConstants.pharmacies);
 
       if (response.statusCode == 200) {
         final List<dynamic> data =
@@ -31,7 +32,7 @@ class PharmaciesRepository {
   /// GET /api/v1/pharmacies/{id}
   Future<Pharmacy> getPharmacyById(String pharmacyId) async {
     try {
-      final response = await _dio.get('/api/v1/pharmacies/$pharmacyId');
+      final response = await _dio.get('${ApiConstants.pharmacies}/$pharmacyId');
 
       if (response.statusCode == 200) {
         final data =
@@ -51,7 +52,7 @@ class PharmaciesRepository {
   Future<Pharmacy> getPharmacyByLicense(String licenseNumber) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/by-license/$licenseNumber',
+        '${ApiConstants.pharmaciesByLicense}/$licenseNumber',
       );
 
       if (response.statusCode == 200) {
@@ -67,8 +68,6 @@ class PharmaciesRepository {
     }
   }
 
-  /// Rechercher les pharmacies à proximité
-  /// GET /api/v1/pharmacies/nearby?latitude={lat}&longitude={lon}&radiusKm={radius}
   Future<List<Pharmacy>> getNearbyPharmacies({
     required double latitude,
     required double longitude,
@@ -76,7 +75,7 @@ class PharmaciesRepository {
   }) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/nearby',
+        ApiConstants.nearbyPharmacies,
         queryParameters: {
           'latitude': latitude,
           'longitude': longitude,
@@ -104,7 +103,7 @@ class PharmaciesRepository {
   Future<List<Pharmacy>> searchByName(String name) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/search/by-name',
+        ApiConstants.searchPharmaciesByName,
         queryParameters: {'name': name},
       );
 
@@ -126,7 +125,7 @@ class PharmaciesRepository {
   Future<List<Pharmacy>> searchByCity(String city) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/search/by-city',
+        ApiConstants.searchPharmaciesByCity,
         queryParameters: {'city': city},
       );
 
@@ -148,7 +147,7 @@ class PharmaciesRepository {
   Future<List<Pharmacy>> searchByStatus(String status) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/search/by-status',
+        ApiConstants.searchPharmaciesByStatus,
         queryParameters: {'status': status},
       );
 
@@ -170,7 +169,7 @@ class PharmaciesRepository {
   Future<List<Pharmacy>> getApprovedByCity(String city) async {
     try {
       final response = await _dio.get(
-        '/api/v1/pharmacies/approved/by-city',
+        ApiConstants.approvedPharmaciesByCity,
         queryParameters: {'city': city},
       );
 
@@ -193,7 +192,7 @@ class PharmaciesRepository {
   /// POST /api/v1/pharmacies
   Future<Pharmacy> createPharmacy(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post('/api/v1/pharmacies', data: data);
+      final response = await _dio.post(ApiConstants.pharmacies, data: data);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final respData =
@@ -214,7 +213,7 @@ class PharmaciesRepository {
   ) async {
     try {
       final response = await _dio.put(
-        '/api/v1/pharmacies/$pharmacyId',
+        '${ApiConstants.pharmacies}/$pharmacyId',
         data: data,
       );
 
@@ -234,7 +233,7 @@ class PharmaciesRepository {
   Future<Pharmacy> changeStatus(String pharmacyId, String newStatus) async {
     try {
       final response = await _dio.patch(
-        '/api/v1/pharmacies/$pharmacyId/status',
+        '${ApiConstants.pharmacies}/$pharmacyId/status',
         data: {'status': newStatus},
       );
 
@@ -255,7 +254,9 @@ class PharmaciesRepository {
   /// DELETE /api/v1/pharmacies/{id}
   Future<void> deletePharmacy(String pharmacyId) async {
     try {
-      final response = await _dio.delete('/api/v1/pharmacies/$pharmacyId');
+      final response = await _dio.delete(
+        '${ApiConstants.pharmacies}/$pharmacyId',
+      );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception(

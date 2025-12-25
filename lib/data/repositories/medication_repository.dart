@@ -13,10 +13,22 @@ class MedicationRepository {
   Future<List<Medication>> searchMedications({
     required String name,
     String? therapeuticClass,
+    double? userLat,
+    double? userLon,
   }) async {
     try {
+      // Appelle l'endpoint que tu as montré dans ton PatientSearchController.java
+      final response = await _dio.get(
+        ApiConstants.patientSearch,
+        queryParameters: {
+          'query': name,
+          'sortBy': 'NEAREST',
+          if (userLat != null) 'userLat': userLat,
+          if (userLon != null) 'userLon': userLon,
+        },
+      );
       // Récupérer toutes les pharmacies
-      final pharmaciesResponse = await _dio.get('/pharmacies');
+      final pharmaciesResponse = await _dio.get(ApiConstants.pharmacies);
       if (pharmaciesResponse.statusCode != 200) {
         throw Exception('Erreur lors de la récupération des pharmacies');
       }
@@ -44,7 +56,7 @@ class MedicationRepository {
       for (final pharmacy in pharmacies) {
         try {
           final medResponse = await _dio.get(
-            '/pharmacies/${pharmacy.id}/medications',
+            ApiConstants.pharmacyMedications(pharmacy.id),
             queryParameters: {'name': name},
           );
 
@@ -96,7 +108,7 @@ class MedicationRepository {
   }) async {
     try {
       // Récupérer toutes les pharmacies
-      final pharmaciesResponse = await _dio.get('/pharmacies');
+      final pharmaciesResponse = await _dio.get(ApiConstants.pharmacies);
       if (pharmaciesResponse.statusCode != 200) {
         throw Exception('Erreur lors de la récupération des pharmacies');
       }
@@ -122,7 +134,7 @@ class MedicationRepository {
       for (final pharmacy in pharmacies) {
         try {
           final medResponse = await _dio.get(
-            '/pharmacies/${pharmacy.id}/medications',
+            ApiConstants.pharmacyMedications(pharmacy.id),
           );
 
           if (medResponse.statusCode == 200) {
@@ -162,7 +174,7 @@ class MedicationRepository {
   }) async {
     try {
       final response = await _dio.get(
-        '/pharmacies/nearby',
+        ApiConstants.nearbyPharmacies,
         queryParameters: {
           'latitude': latitude,
           'longitude': longitude,
@@ -198,7 +210,7 @@ class MedicationRepository {
       }
 
       final response = await _dio.get(
-        '/pharmacies/$pharmacyId/medications',
+        ApiConstants.pharmacyMedications(pharmacyId),
         queryParameters: queryParams,
       );
 

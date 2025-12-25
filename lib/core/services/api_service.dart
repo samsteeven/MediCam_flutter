@@ -10,20 +10,21 @@ class ApiService {
   bool _isRefreshing = false; // Add this flag to prevent multiple refresh calls
 
   Dio get dio => _dio;
-
   ApiService() {
     _initDio();
   }
 
-  void _initDio() {
+  Future<void> _initDio() async {
+    final String url = await ApiConstants.baseUrl;
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        baseUrl: url,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       ),
     );
@@ -119,6 +120,21 @@ class ApiService {
     );
   }
 
+  // Aide à attendre que Dio soit prêt
+  Future<void> ensureDioReady() async {
+    // Si _dio n'est pas encore initialisé, on attend un peu
+    // ou on rappelle l'init si nécessaire.
+    int retry = 0;
+    while (retry < 10) {
+      try {
+        if (_dio != null) return;
+      } catch (_) {}
+      await Future.delayed(const Duration(milliseconds: 100));
+      retry++;
+    }
+  }
+
+  // GET request
   Future<String?> _handleTokenExpired() async {
     try {
       final refreshToken = await _secureStorage.read(
@@ -129,11 +145,11 @@ class ApiService {
         await _secureStorage.deleteAll();
         return null;
       }
-
+      final String currentBaseUrl = await ApiConstants.baseUrl;
       // Create a new Dio instance without interceptor to avoid loop
       final refreshDio = Dio(
         BaseOptions(
-          baseUrl: ApiConstants.baseUrl,
+          baseUrl: currentBaseUrl,
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -180,9 +196,13 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
+    await ensureDioReady();
+
     try {
+      // 2. On prépare les headers
       final options = Options(headers: await _getHeaders(requiresAuth));
 
+      // 3. On lance la requête avec une syntaxe scannable
       return await _dio.get(
         path,
         queryParameters: queryParams,
@@ -200,6 +220,7 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
+    await ensureDioReady();
     try {
       final options = Options(headers: await _getHeaders(requiresAuth));
 
@@ -229,6 +250,7 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
+    await ensureDioReady();
     try {
       final options = Options(headers: await _getHeaders(requiresAuth));
 
@@ -264,6 +286,7 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
+    await ensureDioReady();
     try {
       final options = Options(headers: await _getHeaders(requiresAuth));
 
@@ -285,6 +308,7 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
+    await ensureDioReady();
     try {
       final options = Options(headers: await _getHeaders(requiresAuth));
 

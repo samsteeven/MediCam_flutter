@@ -87,10 +87,10 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo and welcome
                 const SizedBox(height: 40),
-                Icon(
-                  Icons.medical_services,
-                  size: 80,
-                  color: Theme.of(context).primaryColor,
+                Image.asset(
+                  "assets/images/app_icon.png",
+                  width: 60,
+                  height: 60,
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -214,28 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('S\'inscrire'),
                     ),
                   ],
-                ),
-
-                // Role information
-                const SizedBox(height: 40),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Connectez-vous selon votre rôle',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
                 ),
               ],
             ),

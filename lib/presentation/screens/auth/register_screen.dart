@@ -97,10 +97,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 // Logo and welcome
                 const SizedBox(height: 30),
-                Icon(
-                  Icons.medical_services,
-                  size: 80,
-                  color: Theme.of(context).primaryColor,
+                Image.asset(
+                  "assets/images/app_icon.png",
+                  width: 60,
+                  height: 60,
                 ),
                 const SizedBox(height: 20),
                 Text(

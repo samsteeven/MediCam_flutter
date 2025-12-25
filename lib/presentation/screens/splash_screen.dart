@@ -1,3 +1,4 @@
+import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
@@ -14,7 +15,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+      context.read<LocationProvider>().ensureLocation();
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -62,18 +66,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.shade100.withOpacity(0.4),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
                 ),
-                child: Icon(
-                  Icons.medical_services,
-                  size: 60,
-                  color: Colors.blue.shade600,
+                child: Image.asset(
+                  "assets/images/app_icon.png",
+                  width: 60,
+                  height: 60,
                 ),
               ),
               const SizedBox(height: 40),
@@ -94,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'Votre pharmacie en ligne',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   color: Colors.blue.shade400,
                   fontWeight: FontWeight.w500,
                 ),

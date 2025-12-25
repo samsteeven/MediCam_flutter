@@ -18,6 +18,9 @@ dependencies:
   google_fonts: ^6.3.2
   http: ^1.6.0
   flutter_launcher_icons: ^0.14.4
+  location: ^8.0.1
+  device_info_plus: ^12.3.0
+  app_settings: ^6.0.0
 
 dev_dependencies:
   build_runner: ^2.5.2
