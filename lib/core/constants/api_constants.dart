@@ -70,6 +70,7 @@ class ApiConstants {
       '/deliveries/$deliveryId/proof';
   static String deliveryLocation(String deliveryId) =>
       '/deliveries/$deliveryId/location';
+  static const String assignDelivery = '/deliveries/assign';
 
   // === PAYMENTS ===
   static const String processPayment = '/payments/process';

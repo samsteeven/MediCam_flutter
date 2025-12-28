@@ -25,7 +25,7 @@ class LocationProvider with ChangeNotifier {
 
     try {
       final data = await _service.getCurrentLocation().timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 15),
         onTimeout: () {
           throw Exception('Délai d\'attente dépassé pour la localisation.');
         },
