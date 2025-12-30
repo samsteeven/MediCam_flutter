@@ -9,9 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/repositories/auth_repository.dart';
 import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
+import 'package:easypharma_flutter/data/repositories/delivery_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
 import 'package:easypharma_flutter/core/constants/app_constants.dart';
 import 'package:easypharma_flutter/presentation/screens/home/medication_search_screen.dart';
 
@@ -32,7 +34,6 @@ void main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-
   final apiService = ApiService();
   await apiService.ensureDioReady();
   final authRepository = AuthRepository(apiService.dio, apiService);
@@ -44,8 +45,8 @@ void main() async {
         Provider<ApiService>.value(value: apiService),
         Provider<AuthRepository>.value(value: authRepository),
         ChangeNotifierProvider<LocationProvider>(
-        create: (context) => LocationProvider(), 
-      ),
+          create: (context) => LocationProvider(),
+        ),
         ChangeNotifierProvider<AuthProvider>(
           create:
               (context) => AuthProvider(
@@ -62,6 +63,13 @@ void main() async {
           create:
               (context) => MedicationProvider(
                 MedicationRepository(context.read<ApiService>().dio),
+              ),
+        ),
+        ChangeNotifierProvider<DeliveryProvider>(
+          create:
+              (context) => DeliveryProvider(
+                DeliveryRepository(context.read<ApiService>().dio),
+                locationProvider: context.read<LocationProvider>(),
               ),
         ),
       ],
