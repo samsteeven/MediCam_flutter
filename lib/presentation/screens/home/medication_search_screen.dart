@@ -5,6 +5,9 @@ import 'package:easypharma_flutter/presentation/providers/medication_provider.da
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:app_settings/app_settings.dart';
 
+import '../../providers/cart_provider.dart';
+import '../../providers/navigation_provider.dart';
+
 class MedicationSearchScreen extends StatefulWidget {
   const MedicationSearchScreen({super.key});
 
@@ -434,81 +437,241 @@ class _MedicationSearchScreenState extends State<MedicationSearchScreen> {
     );
   }
 
+  // Remplacez votre méthode _buildPharmacyPriceCard par celle-ci pour déboguer
+
   Widget _buildPharmacyPriceCard(PharmacyMedication pharmacyMedication) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade50.withOpacity(0.6),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            pharmacyMedication.pharmacy.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            pharmacyMedication.pharmacy.address,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Prix: ${pharmacyMedication.price.toStringAsFixed(2)} FCFA',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.green,
-                ),
-              ),
-              Text(
-                'Stock: ${pharmacyMedication.quantityInStock}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color:
-                      pharmacyMedication.quantityInStock > 0
-                          ? Colors.green
-                          : Colors.red,
-                ),
+    // 🔍 Debug: Afficher les informations
+    print('=== DEBUG PHARMACY CARD ===');
+    print('Médicament: ${pharmacyMedication.medication.name}');
+    print('Pharmacie: ${pharmacyMedication.pharmacy.name}');
+    print('Prix: ${pharmacyMedication.price}');
+    print('Stock: ${pharmacyMedication.quantityInStock}');
+    print('Stock > 0: ${pharmacyMedication.quantityInStock > 0}');
+
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, _) {
+        print('CartProvider accessible: ${cartProvider != null}');
+
+        // Vérifier si cet article est déjà dans le panier
+        final isInCart = cartProvider.cartByPharmacy
+            .containsKey(pharmacyMedication.pharmacy.id) &&
+            cartProvider.cartByPharmacy[pharmacyMedication.pharmacy.id]!
+                .any((item) => item.medicationId == pharmacyMedication.medication.id);
+
+        print('Est dans le panier: $isInCart');
+        print('========================');
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade50.withOpacity(0.6),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Ajouté au panier de ${pharmacyMedication.pharmacy.name}',
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                pharmacyMedication.pharmacy.name,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                pharmacyMedication.pharmacy.address,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Prix: ${pharmacyMedication.price.toStringAsFixed(2)} FCFA',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.green,
                     ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
+                  Text(
+                    'Stock: ${pharmacyMedication.quantityInStock}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: pharmacyMedication.quantityInStock > 0
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  ),
+                ],
               ),
-              child: const Text('Ajouter au panier'),
-            ),
+              const SizedBox(height: 8),
+
+              // 🔍 Afficher le statut du bouton
+              if (pharmacyMedication.quantityInStock <= 0)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text(
+                    '❌ Rupture de stock',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      print('🔘 Bouton cliqué!');
+                      try {
+                        cartProvider.addItem(
+                          pharmacyId: pharmacyMedication.pharmacy.id,
+                          pharmacyName: pharmacyMedication.pharmacy.name,
+                          medicationId: pharmacyMedication.medication.id,
+                          medicationName: pharmacyMedication.medication.name,
+                          price: pharmacyMedication.price,
+                          availableStock: pharmacyMedication.quantityInStock,
+                        );
+
+                        print('✅ Article ajouté au panier');
+
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${pharmacyMedication.medication.name} ajouté au panier',
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 2),
+                            action: SnackBarAction(
+                              label: 'Voir panier',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                // Naviguer vers l'onglet panier
+                                context.read<NavigationProvider>().setIndex(2);
+                              },
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        print('❌ Erreur: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      isInCart ? Icons.check_circle : Icons.add_shopping_cart,
+                      size: 18,
+                    ),
+                    label: Text(isInCart ? 'Dans le panier' : 'Ajouter au panier'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isInCart
+                          ? Colors.green
+                          : Colors.blue.shade700,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+  // Widget _buildPharmacyPriceCard(PharmacyMedication pharmacyMedication) {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(12),
+  //       border: Border.all(color: Colors.grey.shade200),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.blue.shade50.withOpacity(0.6),
+  //           blurRadius: 8,
+  //           offset: const Offset(0, 4),
+  //         ),
+  //       ],
+  //     ),
+  //     padding: const EdgeInsets.all(12),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           pharmacyMedication.pharmacy.name,
+  //           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+  //         ),
+  //         const SizedBox(height: 4),
+  //         Text(
+  //           pharmacyMedication.pharmacy.address,
+  //           style: const TextStyle(fontSize: 12, color: Colors.grey),
+  //         ),
+  //         const SizedBox(height: 8),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             Text(
+  //               'Prix: ${pharmacyMedication.price.toStringAsFixed(2)} FCFA',
+  //               style: const TextStyle(
+  //                 fontWeight: FontWeight.bold,
+  //                 fontSize: 14,
+  //                 color: Colors.green,
+  //               ),
+  //             ),
+  //             Text(
+  //               'Stock: ${pharmacyMedication.quantityInStock}',
+  //               style: TextStyle(
+  //                 fontSize: 12,
+  //                 color:
+  //                     pharmacyMedication.quantityInStock > 0
+  //                         ? Colors.green
+  //                         : Colors.red,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 8),
+  //         SizedBox(
+  //           width: double.infinity,
+  //           child: ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 SnackBar(
+  //                   content: Text(
+  //                     'Ajouté au panier de ${pharmacyMedication.pharmacy.name}',
+  //                   ),
+  //                 ),
+  //               );
+  //             },
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: Colors.blue.shade700,
+  //             ),
+  //             child: const Text('Ajouter au panier'),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildErrorWidget(String error) {
     return Center(

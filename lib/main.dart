@@ -1,3 +1,4 @@
+import 'package:easypharma_flutter/presentation/providers/cart_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
@@ -14,7 +15,8 @@ import 'package:easypharma_flutter/presentation/providers/navigation_provider.da
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
 import 'package:easypharma_flutter/core/constants/app_constants.dart';
 import 'package:easypharma_flutter/presentation/screens/home/medication_search_screen.dart';
-
+import 'package:easypharma_flutter/presentation/providers/orders_provider.dart';
+import 'package:easypharma_flutter/data/repositories/orders_repository.dart';
 // Import des écrans...
 import 'package:easypharma_flutter/presentation/screens/splash_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/login_screen.dart';
@@ -46,6 +48,16 @@ void main() async {
         ChangeNotifierProvider<LocationProvider>(
         create: (context) => LocationProvider(), 
       ),
+        ChangeNotifierProvider<CartProvider>(
+          create: (context) => CartProvider(),
+        ),
+        ChangeNotifierProvider<OrdersProvider>(
+          create:
+              (context) => OrdersProvider(
+            OrdersRepository(context.read<ApiService>().dio),
+          ),
+        ),
+
         ChangeNotifierProvider<AuthProvider>(
           create:
               (context) => AuthProvider(

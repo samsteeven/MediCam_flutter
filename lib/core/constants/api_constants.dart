@@ -8,7 +8,7 @@ class ApiConstants {
       return "http://localhost:8080/api/v1";
     }
     // Pour iOS (simulateur ou physique) et Android physique
-    return "https://unconvoluted-prepreference-jeraldine.ngrok-free.dev/api/v1";
+    return "http://overcontentious-michelle-ungeometric.ngrok-free.dev/api/v1";
   }
 
   // === AUTHENTIFICATION ===
