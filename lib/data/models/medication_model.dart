@@ -46,6 +46,8 @@ class Medication {
   final String? genericName;
   final TherapeuticClass therapeuticClass;
   final String? description;
+  final double price;
+  final bool requiresPrescription;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -55,6 +57,8 @@ class Medication {
     this.genericName,
     required this.therapeuticClass,
     this.description,
+    this.price = 0.0,
+    this.requiresPrescription = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -68,6 +72,8 @@ class Medication {
           TherapeuticClass.fromString(json['therapeuticClass'] as String?) ??
           TherapeuticClass.AUTRES,
       description: json['description'] as String?,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      requiresPrescription: json['requiresPrescription'] as bool? ?? false,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)

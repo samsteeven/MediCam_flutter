@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/delivery/widgets/delivery_card.dart';
 import 'package:easypharma_flutter/presentation/screens/delivery/delivery_confirmation_screen.dart';
 import 'package:easypharma_flutter/data/models/delivery_model.dart';
@@ -66,6 +67,49 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
               ),
               automaticallyImplyLeading: false,
               actions: [
+                Consumer<NotificationProvider>(
+                  builder: (context, provider, _) {
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.notifications_none,
+                            color: Colors.blue.shade700,
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/notifications');
+                          },
+                          tooltip: 'Notifications',
+                        ),
+                        if (provider.unreadCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '${provider.unreadCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
                 IconButton(
                   icon: Icon(Icons.refresh, color: Colors.blue.shade700),
                   onPressed:
@@ -411,10 +455,46 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     // Simplification: bouton chargement
     return Consumer<DeliveryProvider>(
       builder: (context, provider, child) {
+        // Si la liste est vide et qu'on ne charge pas, déclencher le chargement APRÈS le build
         if (provider.allDeliveries.isEmpty && !provider.isLoading) {
-          // Try fetch
-          provider.fetchAllDeliveries();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            provider.fetchAllDeliveries();
+          });
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.isLoading && provider.allDeliveries.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.allDeliveries.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox, size: 64, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  'Aucune livraison',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => provider.fetchAllDeliveries(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text(
+                    'Actualiser',
+                    style: TextStyle(color: Colors.white),
+                    
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return RefreshIndicator(

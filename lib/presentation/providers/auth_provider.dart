@@ -366,6 +366,29 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Delete user account
+  Future<void> deleteProfile() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authRepository.deleteProfile();
+
+      // Clear local storage after successful deletion
+      await _apiService.clearTokens();
+      await _prefs.clear();
+
+      _user = null;
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();

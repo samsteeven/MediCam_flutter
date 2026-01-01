@@ -11,7 +11,9 @@ class DeliveryRepository {
     try {
       final response = await _dio.get(ApiConstants.myDeliveryStats);
       if (response.statusCode == 200) {
-        return DeliveryStats.fromJson(response.data as Map<String, dynamic>);
+        final data =
+            response.data is Map ? response.data : response.data['data'];
+        return DeliveryStats.fromJson(data as Map<String, dynamic>);
       }
       throw Exception('Failed to load stats');
     } on DioException catch (e) {
@@ -58,7 +60,9 @@ class DeliveryRepository {
         queryParameters: {'status': status},
       );
       if (response.statusCode == 200) {
-        return Delivery.fromJson(response.data as Map<String, dynamic>);
+        final data =
+            response.data is Map ? response.data : response.data['data'];
+        return Delivery.fromJson(data as Map<String, dynamic>);
       }
       throw Exception('Failed to update status');
     } on DioException catch (e) {
@@ -89,7 +93,9 @@ class DeliveryRepository {
         queryParameters: {'proofUrl': proofUrl},
       );
       if (response.statusCode == 200) {
-        return Delivery.fromJson(response.data as Map<String, dynamic>);
+        final data =
+            response.data is Map ? response.data : response.data['data'];
+        return Delivery.fromJson(data as Map<String, dynamic>);
       }
       throw Exception('Failed to submit proof');
     } on DioException catch (e) {

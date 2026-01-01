@@ -14,8 +14,16 @@ import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
-import 'package:easypharma_flutter/core/constants/app_constants.dart';
-import 'package:easypharma_flutter/presentation/screens/home/medication_search_screen.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/cart_provider.dart';
+import 'package:easypharma_flutter/data/repositories/prescription_repository.dart';
+import 'package:easypharma_flutter/presentation/providers/prescription_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/orders_provider.dart';
+import 'package:easypharma_flutter/data/repositories/review_repository.dart';
+import 'package:easypharma_flutter/presentation/providers/review_provider.dart';
+import 'package:easypharma_flutter/data/repositories/notification_repository.dart';
+import 'package:easypharma_flutter/data/repositories/orders_repository.dart';
+// import 'package:easypharma_flutter/core/constants/app_constants.dart';
 
 // Import des écrans...
 import 'package:easypharma_flutter/presentation/screens/splash_screen.dart';
@@ -23,6 +31,7 @@ import 'package:easypharma_flutter/presentation/screens/auth/login_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/register_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/profile/profile_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/profile/edit_profile_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/profile/notification_center_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/home/patient_home_screen.dart';
 
 void main() async {
@@ -72,6 +81,33 @@ void main() async {
                 locationProvider: context.read<LocationProvider>(),
               ),
         ),
+        ChangeNotifierProvider<NotificationProvider>(
+          create:
+              (context) => NotificationProvider(
+                NotificationRepository(context.read<ApiService>().dio),
+              ),
+        ),
+        ChangeNotifierProvider<CartProvider>(
+          create: (context) => CartProvider(),
+        ),
+        ChangeNotifierProvider<OrdersProvider>(
+          create:
+              (context) => OrdersProvider(
+                OrdersRepository(context.read<ApiService>().dio),
+              ),
+        ),
+        ChangeNotifierProvider<PrescriptionProvider>(
+          create:
+              (context) => PrescriptionProvider(
+                PrescriptionRepository(context.read<ApiService>().dio),
+              ),
+        ),
+        ChangeNotifierProvider<ReviewProvider>(
+          create:
+              (context) => ReviewProvider(
+                ReviewRepository(context.read<ApiService>().dio),
+              ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -114,7 +150,7 @@ class MyApp extends StatelessWidget {
         '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-home': (context) => const PatientHomeScreen(),
         '/delivery-home': (context) => const DeliveryHomeScreen(),
-        '/medication-search': (context) => const MedicationSearchScreen(),
+        '/notifications': (context) => const NotificationCenterScreen(),
         '/forgot-password':
             (context) =>
                 _buildAuthScreen(context, const ForgotPasswordScreen()),
