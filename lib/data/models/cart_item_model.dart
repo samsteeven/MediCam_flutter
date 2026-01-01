@@ -1,66 +1,45 @@
-// Modèle pour un article dans le panier
+import 'package:easypharma_flutter/data/models/medication_model.dart';
+
 class CartItem {
-  final String pharmacyId;
-  final String pharmacyName;
-  final String medicationId;
-  final String medicationName;
-  final double price;
+  final String id;
+  final Medication medication;
+  final Pharmacy pharmacy;
   int quantity;
-  final int availableStock;
+  final double price;
 
   CartItem({
-    required this.pharmacyId,
-    required this.pharmacyName,
-    required this.medicationId,
-    required this.medicationName,
-    required this.price,
+    required this.id,
+    required this.medication,
+    required this.pharmacy,
     this.quantity = 1,
-    required this.availableStock,
+    required this.price,
   });
 
-  // Calculer le sous-total pour cet article
-  double get subtotal => price * quantity;
+  double get total => price * quantity;
 
-  // Convertir en Map (pour la sauvegarde locale si nécessaire)
-  Map<String, dynamic> toJson() => {
-    'pharmacyId': pharmacyId,
-    'pharmacyName': pharmacyName,
-    'medicationId': medicationId,
-    'medicationName': medicationName,
-    'price': price,
-    'quantity': quantity,
-    'availableStock': availableStock,
-  };
-
-  // Créer depuis un Map
-  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-    pharmacyId: json['pharmacyId'],
-    pharmacyName: json['pharmacyName'],
-    medicationId: json['medicationId'],
-    medicationName: json['medicationName'],
-    price: json['price'],
-    quantity: json['quantity'],
-    availableStock: json['availableStock'],
-  );
-
-  // Copier avec modifications
   CartItem copyWith({
-    String? pharmacyId,
-    String? pharmacyName,
-    String? medicationId,
-    String? medicationName,
-    double? price,
+    String? id,
+    Medication? medication,
+    Pharmacy? pharmacy,
     int? quantity,
-    int? availableStock,
+    double? price,
   }) {
     return CartItem(
-      pharmacyId: pharmacyId ?? this.pharmacyId,
-      pharmacyName: pharmacyName ?? this.pharmacyName,
-      medicationId: medicationId ?? this.medicationId,
-      medicationName: medicationName ?? this.medicationName,
-      price: price ?? this.price,
+      id: id ?? this.id,
+      medication: medication ?? this.medication,
+      pharmacy: pharmacy ?? this.pharmacy,
       quantity: quantity ?? this.quantity,
-      availableStock: availableStock ?? this.availableStock,
+      price: price ?? this.price,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'medicationId': medication.id,
+      'pharmacyId': pharmacy.id,
+      'quantity': quantity,
+      'price': price,
+    };
   }
 }

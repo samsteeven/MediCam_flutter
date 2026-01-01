@@ -372,4 +372,27 @@ class AuthRepository {
       throw Exception('Erreur inattendue: $e');
     }
   }
+
+  Future<void> deleteProfile() async {
+    try {
+      await _apiService.delete(ApiConstants.deleteProfile, requiresAuth: true);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _apiService.patch(
+        ApiConstants.updatePassword,
+        data: {'oldPassword': oldPassword, 'newPassword': newPassword},
+        requiresAuth: true,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

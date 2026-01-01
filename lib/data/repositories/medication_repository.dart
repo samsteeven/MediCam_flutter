@@ -9,93 +9,47 @@ class MedicationRepository {
   MedicationRepository(this._dio);
 
   /// Recherche de médicaments par nom et catégorie thérapeutique
-  /// Récupère tous les médicaments des pharmacies et filtre localement
-  Future<List<Medication>> searchMedications({
+  /// Utilise l'endpoint de recherche patient qui retourne des PharmacyMedication avec stocks
+  Future<List<PharmacyMedication>> searchMedications({
     required String name,
     String? therapeuticClass,
     double? userLat,
     double? userLon,
+    String sortBy = 'NEAREST',
+    bool? requiresPrescription,
+    double? minPrice,
+    double? maxPrice,
+    String? availability,
   }) async {
     try {
-      // Appelle l'endpoint que tu as montré dans ton PatientSearchController.java
       final response = await _dio.get(
         ApiConstants.patientSearch,
         queryParameters: {
           'query': name,
-          'sortBy': 'NEAREST',
+          'sortBy': sortBy,
           if (userLat != null) 'userLat': userLat,
           if (userLon != null) 'userLon': userLon,
+          if (therapeuticClass != null) 'therapeuticClass': therapeuticClass,
+          if (requiresPrescription != null)
+            'requiresPrescription': requiresPrescription,
+          if (minPrice != null) 'minPrice': minPrice,
+          if (maxPrice != null) 'maxPrice': maxPrice,
+          if (availability != null) 'availability': availability,
         },
       );
-      // Récupérer toutes les pharmacies
-      final pharmaciesResponse = await _dio.get(ApiConstants.pharmacies);
-      if (pharmaciesResponse.statusCode != 200) {
-        throw Exception('Erreur lors de la récupération des pharmacies');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            response.data is List ? response.data : response.data['data'] ?? [];
+
+        return data
+            .map(
+              (json) =>
+                  PharmacyMedication.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
       }
-
-      final List<dynamic> pharmaciesData =
-          pharmaciesResponse.data is List
-              ? pharmaciesResponse.data
-              : pharmaciesResponse.data['data'] ?? [];
-      final List<Pharmacy> pharmacies = List<Pharmacy>.from(
-        pharmaciesData.map(
-          (json) => Pharmacy.fromJson(json as Map<String, dynamic>),
-        ),
-      );
-
-      // Vérifier s'il y a des pharmacies
-      if (pharmacies.isEmpty) {
-        throw Exception(
-          'Aucune pharmacie disponible. Veuillez réessayer plus tard.',
-        );
-      }
-
-      // Collecter les médicaments de toutes les pharmacies
-      final Map<String, Medication> medicationMap = {};
-
-      for (final pharmacy in pharmacies) {
-        try {
-          final medResponse = await _dio.get(
-            ApiConstants.pharmacyMedications(pharmacy.id),
-            queryParameters: {'name': name},
-          );
-
-          if (medResponse.statusCode == 200) {
-            final List<dynamic> medData =
-                medResponse.data is List
-                    ? medResponse.data
-                    : medResponse.data['data'] ?? [];
-
-            for (final item in medData) {
-              final pharmacyMed = PharmacyMedication.fromJson(
-                item as Map<String, dynamic>,
-              );
-              final med = pharmacyMed.medication;
-
-              // Filtrer par classe thérapeutique si spécifiée
-              if (therapeuticClass != null &&
-                  med.therapeuticClass
-                          .toString()
-                          .split('.')
-                          .last
-                          .toUpperCase() !=
-                      therapeuticClass) {
-                continue;
-              }
-
-              // Ajouter le médicament s'il ne l'est pas déjà
-              if (!medicationMap.containsKey(med.id)) {
-                medicationMap[med.id] = med;
-              }
-            }
-          }
-        } catch (e) {
-          // Continuer avec les autres pharmacies si l'une échoue
-          print('Erreur pour pharmacy ${pharmacy.id}: $e');
-        }
-      }
-
-      return medicationMap.values.toList();
+      return [];
     } on DioException catch (e) {
       throw Exception('Erreur réseau: ${e.message}');
     }
@@ -194,6 +148,88 @@ class MedicationRepository {
       );
     } on DioException catch (e) {
       throw Exception('Erreur réseau: ${e.message}');
+    }
+  }
+
+  /// Filtrer les médicaments (Global Catalog)
+  /// GET /api/v1/medications/filter
+  Future<List<Medication>> filterMedications(
+    Map<String, dynamic> filters,
+  ) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.filterMedications,
+        queryParameters: filters,
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            response.data is List ? response.data : response.data['data'] ?? [];
+        return data
+            .map((json) => Medication.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Erreur lors du filtrage des médicaments: $e');
+    }
+  }
+
+  /// Médicaments par classe thérapeutique (Global Catalog)
+  /// GET /api/v1/medications/by-class/{therapeuticClass}
+  Future<List<Medication>> getMedicationsByClass(
+    String therapeuticClass,
+  ) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.medicationsByClass(therapeuticClass),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            response.data is List ? response.data : response.data['data'] ?? [];
+        return data
+            .map((json) => Medication.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération par classe: $e');
+    }
+  }
+
+  /// Médicaments nécessitant ordonnance (Global Catalog)
+  /// GET /api/v1/medications/prescription-required
+  Future<List<Medication>> getPrescriptionRequiredMedications() async {
+    try {
+      final response = await _dio.get(ApiConstants.prescriptionRequired);
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            response.data is List ? response.data : response.data['data'] ?? [];
+        return data
+            .map((json) => Medication.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception(
+        'Erreur lors de la récupération des médicaments sur ordonnance: $e',
+      );
+    }
+  }
+
+  /// Top Médicaments Vendus (Admin)
+  Future<List<Medication>> getTopSoldMedications() async {
+    try {
+      final response = await _dio.get(ApiConstants.adminTopSold);
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            response.data is List ? response.data : response.data['data'] ?? [];
+        return data
+            .map((json) => Medication.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
     }
   }
 

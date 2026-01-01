@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
+import 'package:easypharma_flutter/presentation/screens/delivery/widgets/delivery_card.dart';
+import 'package:easypharma_flutter/presentation/screens/delivery/delivery_confirmation_screen.dart';
+import 'package:easypharma_flutter/data/models/delivery_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DeliveryHomeScreen extends StatelessWidget {
   const DeliveryHomeScreen({super.key});
@@ -45,6 +51,49 @@ class DeliveryHomeScreen extends StatelessWidget {
               ),
               automaticallyImplyLeading: false,
               actions: [
+                Consumer<NotificationProvider>(
+                  builder: (context, provider, _) {
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.notifications_none,
+                            color: Colors.blue.shade700,
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/notifications');
+                          },
+                          tooltip: 'Notifications',
+                        ),
+                        if (provider.unreadCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '${provider.unreadCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
                 IconButton(
                   icon: Icon(Icons.person_outline, color: Colors.blue.shade700),
                   onPressed: () => Navigator.pushNamed(context, '/profile'),
@@ -179,18 +228,69 @@ class DeliveryHomeScreen extends StatelessWidget {
                     value: '0',
                     color: Colors.blue,
                   ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryView(BuildContext context) {
+    // Nécessite d'appeler fetchAllDeliveries si pas fait
+    // On le fait au premier build de cet onglet via un FutureBuilder ou state init local
+    // Simplification: bouton chargement
+    return Consumer<DeliveryProvider>(
+      builder: (context, provider, child) {
+        // Si la liste est vide et qu'on ne charge pas, déclencher le chargement APRÈS le build
+        if (provider.allDeliveries.isEmpty && !provider.isLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            provider.fetchAllDeliveries();
+          });
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.isLoading && provider.allDeliveries.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.allDeliveries.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox, size: 64, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  'Aucune livraison',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    icon: Icons.check_circle_outlined,
-                    title: 'Terminées',
-                    value: '0',
-                    color: Colors.green,
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => provider.fetchAllDeliveries(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text(
+                    'Actualiser',
+                    style: TextStyle(color: Colors.white),
+                    
                   ),
                 ),
               ],
             ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => provider.fetchAllDeliveries(),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: provider.allDeliveries.length,
+            itemBuilder: (context, index) {
+              final delivery = provider.allDeliveries[index];
+              // Carte simplifiée ou la même
+              return DeliveryCard(delivery: delivery);
+            },
           ),
           const SizedBox(height: 24),
 

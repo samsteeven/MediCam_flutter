@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
 import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
+import 'package:easypharma_flutter/core/constants/api_constants.dart';
 
 // Mock Dio
 class MockDio extends Mock implements Dio {}
@@ -18,38 +19,59 @@ void main() {
       repository = MedicationRepository(mockDio);
     });
 
-    test('searchMedications should return list of medications', () async {
-      // Arrange
-      final mockResponse = Response(
-        requestOptions: RequestOptions(path: ''),
-        statusCode: 200,
-        data: [
-          {
-            'id': '1',
-            'name': 'Paracétamol',
-            'genericName': 'Paracétamol 500mg',
-            'therapeuticClass': 'ANTALGIQUE',
-            'createdAt': DateTime.now().toIso8601String(),
-            'updatedAt': DateTime.now().toIso8601String(),
-          },
-        ],
-      );
+    test(
+      'searchMedications should return list of pharmacy medications',
+      () async {
+        // Arrange
+        final mockResponse = Response(
+          requestOptions: RequestOptions(path: ''),
+          statusCode: 200,
+          data: [
+            {
+              'id': '1',
+              'medicationId': 'med-1',
+              'pharmacyId': 'pharm-1',
+              'price': 2500.0,
+              'quantityInStock': 100,
+              'medication': {
+                'id': 'med-1',
+                'name': 'Paracétamol',
+                'therapeuticClass': 'ANTALGIQUE',
+                'createdAt': DateTime.now().toIso8601String(),
+                'updatedAt': DateTime.now().toIso8601String(),
+              },
+              'pharmacy': {
+                'id': 'pharm-1',
+                'name': 'Pharmacie A',
+                'address': 'Rue 1',
+                'city': 'Dakar',
+                'phone': '221771234567',
+                'latitude': 14.6928,
+                'longitude': -17.0467,
+                'createdAt': DateTime.now().toIso8601String(),
+                'updatedAt': DateTime.now().toIso8601String(),
+              },
+            },
+          ],
+        );
 
-      when(
-        () => mockDio.get(
-          '/api/v1/medications/search',
-          queryParameters: any(named: 'queryParameters'),
-        ),
-      ).thenAnswer((_) async => mockResponse);
+        when(
+          () => mockDio.get(
+            ApiConstants.patientSearch,
+            queryParameters: any(named: 'queryParameters'),
+          ),
+        ).thenAnswer((_) async => mockResponse);
 
-      // Act
-      final result = await repository.searchMedications(name: 'Paracétamol');
+        // Act
+        final result = await repository.searchMedications(name: 'Paracétamol');
 
-      // Assert
-      expect(result, isA<List<Medication>>());
-      expect(result.length, 1);
-      expect(result[0].name, 'Paracétamol');
-    });
+        // Assert
+        expect(result, isA<List<PharmacyMedication>>());
+        expect(result.length, 1);
+        expect(result[0].medication.name, 'Paracétamol');
+        expect(result[0].quantityInStock, 100);
+      },
+    );
 
     test('getPricesAcrossPharmacies should return sorted prices', () async {
       // Arrange
@@ -171,17 +193,35 @@ void main() {
         data: [
           {
             'id': '1',
-            'name': 'Paracétamol',
-            'therapeuticClass': 'ANTALGIQUE',
-            'createdAt': DateTime.now().toIso8601String(),
-            'updatedAt': DateTime.now().toIso8601String(),
+            'medicationId': 'med-1',
+            'pharmacyId': 'pharm-1',
+            'price': 2500.0,
+            'quantityInStock': 100,
+            'medication': {
+              'id': 'med-1',
+              'name': 'Paracétamol',
+              'therapeuticClass': 'ANTALGIQUE',
+              'createdAt': DateTime.now().toIso8601String(),
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
+            'pharmacy': {
+              'id': 'pharm-1',
+              'name': 'Pharmacie A',
+              'address': 'Rue 1',
+              'city': 'Dakar',
+              'phone': '221771234567',
+              'latitude': 14.6928,
+              'longitude': -17.0467,
+              'createdAt': DateTime.now().toIso8601String(),
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
           },
         ],
       );
 
       when(
         () => mockDio.get(
-          '/api/v1/medications/search',
+          ApiConstants.patientSearch,
           queryParameters: any(named: 'queryParameters'),
         ),
       ).thenAnswer((_) async => mockResponse);
@@ -191,26 +231,53 @@ void main() {
 
       // Assert
       expect(provider.searchResults, isNotEmpty);
-      expect(provider.searchResults[0].name, 'Paracétamol');
+      expect(provider.searchResults[0].medication.name, 'Paracétamol');
       expect(provider.isLoading, false);
     });
 
     test('filterByTherapeuticClass should filter results', () async {
       // Arrange
+      final p1 = Pharmacy(
+        id: 'p1',
+        name: 'Pharm 1',
+        address: '',
+        city: '',
+        phone: '',
+        latitude: 0,
+        longitude: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
       provider.setSearchResultsForTest([
-        Medication(
+        PharmacyMedication(
           id: '1',
-          name: 'Paracétamol',
-          therapeuticClass: TherapeuticClass.ANTALGIQUE,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          medicationId: 'm1',
+          pharmacyId: 'p1',
+          price: 1000,
+          quantityInStock: 10,
+          medication: Medication(
+            id: 'm1',
+            name: 'Paracétamol',
+            therapeuticClass: TherapeuticClass.ANTALGIQUE,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          pharmacy: p1,
         ),
-        Medication(
+        PharmacyMedication(
           id: '2',
-          name: 'Amoxicilline',
-          therapeuticClass: TherapeuticClass.ANTIBIOTIQUE,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          medicationId: 'm2',
+          pharmacyId: 'p1',
+          price: 2000,
+          quantityInStock: 10,
+          medication: Medication(
+            id: 'm2',
+            name: 'Amoxicilline',
+            therapeuticClass: TherapeuticClass.ANTIBIOTIQUE,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          pharmacy: p1,
         ),
       ]);
 
@@ -220,7 +287,7 @@ void main() {
       // Assert
       expect(provider.searchResults.length, 1);
       expect(
-        provider.searchResults[0].therapeuticClass,
+        provider.searchResults[0].medication.therapeuticClass,
         TherapeuticClass.ANTALGIQUE,
       );
     });
@@ -354,12 +421,30 @@ void main() {
     test('clearResults should reset all data', () {
       // Arrange
       provider.setSearchResultsForTest([
-        Medication(
+        PharmacyMedication(
           id: '1',
-          name: 'Test',
-          therapeuticClass: TherapeuticClass.AUTRES,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          medicationId: 'm1',
+          pharmacyId: 'p1',
+          price: 1000,
+          quantityInStock: 10,
+          medication: Medication(
+            id: '1',
+            name: 'Test',
+            therapeuticClass: TherapeuticClass.AUTRES,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          pharmacy: Pharmacy(
+            id: 'p1',
+            name: '',
+            address: '',
+            city: '',
+            phone: '',
+            latitude: 0,
+            longitude: 0,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
         ),
       ]);
 

@@ -140,7 +140,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.green.shade200),
                     ),
-                    child: const Wrap(
+                    child: const Row(
                       children: [
                         Icon(Icons.check_circle, color: Colors.green),
                         SizedBox(width: 12),
