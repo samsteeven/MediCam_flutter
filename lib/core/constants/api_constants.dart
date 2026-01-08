@@ -1,14 +1,6 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConstants {
   static String get baseUrl {
-    // Si on tourne sur un émulateur Android
-    if (kIsWeb) {
-      // Pour le web, on utilise l'URL publique
-      return "http://localhost:8080/api/v1";
-    }
-    // Pour iOS (simulateur ou physique) et Android physique
-    return "http://overcontentious-michelle-ungeometric.ngrok-free.dev/api/v1";
+    return "https://unconvoluted-prepreference-jeraldine.ngrok-free.dev/api/v1";
   }
 
   // === ADMIN DASHBOARD ===
@@ -84,6 +76,7 @@ class ApiConstants {
       '/deliveries/$deliveryId/proof';
   static String deliveryLocation(String deliveryId) =>
       '/deliveries/$deliveryId/location';
+  static const String assignDelivery = '/deliveries/assign';
 
   // === NOTIFICATIONS ===
   static const String myNotifications = '/notifications/my-notifications';

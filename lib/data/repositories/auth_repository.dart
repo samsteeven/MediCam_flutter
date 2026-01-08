@@ -56,6 +56,7 @@ class AuthRepository {
     required UserRole role,
     String? address,
     String? city,
+    String? pharmacyId,
   }) async {
     try {
       final data = {
@@ -68,6 +69,7 @@ class AuthRepository {
         'address':
             (address == null || address.trim().isEmpty) ? null : address.trim(),
         'city': (city == null || city.trim().isEmpty) ? null : city.trim(),
+        'pharmacyId': pharmacyId,
       };
 
       print('=== AUTH REPOSITORY REGISTER ===');

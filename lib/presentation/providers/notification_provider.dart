@@ -13,7 +13,10 @@ class NotificationProvider with ChangeNotifier {
   final _alertController = StreamController<String>.broadcast();
   Stream<String> get alertStream => _alertController.stream;
 
-  NotificationProvider(this._repository) {
+  NotificationProvider(this._repository);
+
+  /// Initialize notifications - should be called after authentication
+  void initialize() {
     fetchNotifications();
     startPolling();
   }

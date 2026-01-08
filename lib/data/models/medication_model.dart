@@ -123,13 +123,18 @@ class PharmacyMedication {
       medicationId: json['medicationId'] as String? ?? '',
       pharmacyId: json['pharmacyId'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      quantityInStock: json['quantityInStock'] as int? ?? 0,
+      // Tenter plusieurs champs possibles pour le stock
+      quantityInStock:
+          (json['quantityInStock'] ?? json['stock'] ?? json['quantity'])
+              as int? ??
+          0,
       medication:
           json['medication'] != null
               ? Medication.fromJson(json['medication'] as Map<String, dynamic>)
               : Medication(
-                id: '',
-                name: '',
+                id: json['medicationId'] as String? ?? '',
+                // Essayer de récupérer le nom depuis le niveau supérieur si medication est null
+                name: json['medicationName'] as String? ?? 'Médicament inconnu',
                 therapeuticClass: TherapeuticClass.AUTRES,
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
@@ -138,8 +143,8 @@ class PharmacyMedication {
           json['pharmacy'] != null
               ? Pharmacy.fromJson(json['pharmacy'] as Map<String, dynamic>)
               : Pharmacy(
-                id: '',
-                name: '',
+                id: json['pharmacyId'] as String? ?? '',
+                name: json['pharmacyName'] as String? ?? 'Pharmacie inconnue',
                 address: '',
                 city: '',
                 phone: '',

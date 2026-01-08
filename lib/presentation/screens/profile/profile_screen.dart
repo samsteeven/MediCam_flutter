@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/data/models/user_model.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -69,9 +70,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey.shade50,
         elevation: 0,
         title: Text(
           'Mon Profil',
@@ -88,12 +89,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.blue.shade700),
+            icon: const Icon(Icons.refresh, color: Colors.black87),
             onPressed: _loadUserData,
             tooltip: 'Actualiser',
           ),
           IconButton(
-            icon: Icon(Icons.edit, color: Colors.blue.shade700),
+            icon: const Icon(Icons.edit, color: Colors.black87),
             onPressed: () async {
               final bool? shouldRefresh =
                   await Navigator.pushNamed(context, '/edit-profile') as bool?;
@@ -183,10 +184,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   user.fullName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: Colors.blue.shade700,
+                    color: Colors.black, // Secondary Black
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -254,47 +255,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
 
           // Statuts
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.shade200),
             ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Statut du compte',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.blue.shade700,
+            color: Colors.white,
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Statut du compte',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black, // Secondary Black
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _buildStatusRow(
-                  icon: Icons.verified_user_outlined,
-                  label: 'Vérification',
-                  isActive: user.isVerified,
-                  status: user.isVerified ? 'Vérifié' : 'Non vérifié',
-                ),
-                const SizedBox(height: 12),
-                _buildStatusRow(
-                  icon: Icons.check_circle_outline,
-                  label: 'Activité',
-                  isActive: user.isActive,
-                  status: user.isActive ? 'Actif' : 'Inactif',
-                ),
-                const SizedBox(height: 12),
-                _buildStatusRow(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Membre depuis',
-                  isActive: true,
-                  status:
-                      '${user.createdAt.day}/${user.createdAt.month}/${user.createdAt.year}',
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  _buildStatusRow(
+                    icon: Icons.verified_user_outlined,
+                    label: 'Vérification',
+                    isActive: user.isVerified,
+                    status: user.isVerified ? 'Vérifié' : 'Non vérifié',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatusRow(
+                    icon: Icons.check_circle_outline,
+                    label: 'Activité',
+                    isActive: user.isActive,
+                    status: user.isActive ? 'Actif' : 'Inactif',
+                  ),
+                  const SizedBox(height: 12),
+                  _buildStatusRow(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Membre depuis',
+                    isActive: true,
+                    status:
+                        '${user.createdAt.day}/${user.createdAt.month}/${user.createdAt.year}',
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 32),
@@ -302,43 +306,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Bouton de déconnexion
           SizedBox(
             width: double.infinity,
-            height: 50,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange.shade500,
-                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.orange.shade700,
+                side: BorderSide(color: Colors.orange.shade200, width: 1.5),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 2,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
               ),
               onPressed: () => _showLogoutConfirmation(context),
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout_rounded),
               label: const Text(
                 'Se déconnecter',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Bouton de suppression de compte
           SizedBox(
             width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red.shade600,
-                side: BorderSide(color: Colors.red.shade300, width: 2),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red.shade700,
+                side: BorderSide(color: Colors.red.shade200, width: 1.5),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
               ),
               onPressed: () => _showDeleteAccountConfirmation(context),
-              icon: const Icon(Icons.delete_forever),
+              icon: const Icon(Icons.delete_outline_rounded),
               label: const Text(
                 'Supprimer mon compte',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -369,23 +376,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(fontSize: 16),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                  'Annuler',
-                  style: TextStyle(color: Colors.grey.shade600),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade500,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade600,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text(
+                          'Se déconnecter',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          'Annuler',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Se déconnecter'),
               ),
             ],
           ),
@@ -465,20 +497,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade600,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continuer'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade600,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text(
+                          'Continuer',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          'Annuler',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -505,20 +565,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(fontSize: 16),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Annuler'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Supprimer définitivement'),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade700,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text(
+                            'Supprimer définitivement',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(
+                            'Annuler',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -552,7 +640,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Delete account action
   Future<void> _deleteAccount(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       // Show loading indicator
@@ -584,33 +671,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Close loading dialog
       if (context.mounted) {
         Navigator.pop(context);
+        NotificationHelper.showSuccess(context, 'Compte supprimé avec succès');
       }
-
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Compte supprimé avec succès'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
 
       // Navigate to login
       if (context.mounted) {
+        await Future.delayed(const Duration(milliseconds: 500));
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     } catch (e) {
       // Close loading dialog
       if (context.mounted) {
         Navigator.pop(context);
+        NotificationHelper.showError(context, 'Erreur: ${e.toString()}');
       }
-
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
     }
   }
 
@@ -618,27 +692,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required List<Widget> children,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.blue.shade700,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black, // Secondary Black
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          ...children,
-        ],
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
       ),
     );
   }
@@ -651,7 +726,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue.shade600, size: 20),
+        Icon(icon, color: Colors.blue.shade700, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -671,7 +746,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade800,
+                  color: Colors.blue.shade700,
                 ),
               ),
             ],

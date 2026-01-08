@@ -118,7 +118,7 @@ class MedicationProvider extends ChangeNotifier {
   Future<void> getNearbyPharmacies({
     required double latitude,
     required double longitude,
-    double radiusKm = 10.0,
+    double radiusKm = 5.0,
   }) async {
     _isLoading = true;
     _errorMessage = null;

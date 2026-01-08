@@ -9,6 +9,12 @@ class CartProvider with ChangeNotifier {
 
   int get itemCount => _items.length;
 
+  int get totalItems {
+    int total = 0;
+    _items.forEach((key, item) => total += item.quantity);
+    return total;
+  }
+
   double get totalAmount {
     double total = 0.0;
     _items.forEach((key, cartItem) {
@@ -17,19 +23,37 @@ class CartProvider with ChangeNotifier {
     return total;
   }
 
+  double get totalPrice => totalAmount;
+
+  int get pharmacyCount {
+    return _items.values.map((item) => item.pharmacy.id).toSet().length;
+  }
+
+  Map<String, List<CartItem>> get cartByPharmacy {
+    final Map<String, List<CartItem>> grouped = {};
+    for (var item in _items.values) {
+      if (!grouped.containsKey(item.pharmacy.id)) {
+        grouped[item.pharmacy.id] = [];
+      }
+      grouped[item.pharmacy.id]!.add(item);
+    }
+    return grouped;
+  }
+
   bool get requiresPrescription {
     return _items.values.any((item) => item.medication.requiresPrescription);
   }
 
   void addItem(Medication medication, Pharmacy pharmacy, double price) {
-    if (_items.containsKey(medication.id)) {
+    final String key = '${medication.id}_${pharmacy.id}';
+    if (_items.containsKey(key)) {
       _items.update(
-        medication.id,
+        key,
         (existing) => existing.copyWith(quantity: existing.quantity + 1),
       );
     } else {
       _items.putIfAbsent(
-        medication.id,
+        key,
         () => CartItem(
           id: DateTime.now().toString(),
           medication: medication,
@@ -64,4 +88,6 @@ class CartProvider with ChangeNotifier {
     _items.clear();
     notifyListeners();
   }
+
+  void clearCart() => clear();
 }

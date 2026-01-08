@@ -42,3 +42,7 @@ android {
 flutter {
     source = "../.."
 }
+
+kotlin {
+    jvmToolchain(17)
+}

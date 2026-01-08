@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,30 +23,26 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Initialize auth provider
+    // Initialiser le auth provider
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.initialize();
 
-    // Wait a moment for smooth transition
+    // Attendre un moment pour une transition fluide
     await Future.delayed(const Duration(milliseconds: 2500));
 
-    // Navigate based on authentication status
+    // Naviguer en fonction du statut d'authentification
     if (!mounted) return;
 
-    print('=== SPLASH SCREEN DEBUG ===');
-    print('User: ${authProvider.user?.email ?? "null"}');
-    print('isAuthenticated: ${authProvider.isAuthenticated}');
-    print('homeRoute: ${authProvider.homeRoute}');
-
     if (authProvider.isAuthenticated) {
+      // Initialize notifications for authenticated users
+      context.read<NotificationProvider>().initialize();
+
       // Rediriger vers l'écran d'accueil basé sur le rôle
       final homeRoute = authProvider.homeRoute ?? '/patient-home';
-      print('Navigation vers: $homeRoute');
-      // Reset tabs before entering home
+      // Réinitialiser les onglets avant d'entrer dans l'accueil
       if (mounted) context.read<NavigationProvider>().reset();
       Navigator.pushReplacementNamed(context, homeRoute);
     } else {
-      print('Navigation vers: /login');
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
@@ -53,8 +50,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       body: Container(
-        decoration: BoxDecoration(color: Colors.white),
+        decoration: BoxDecoration(color: Colors.grey.shade50),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -66,11 +64,21 @@ class _SplashScreenState extends State<SplashScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.shade700.withOpacity(0.15),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
                 ),
-                child: Image.asset(
-                  "assets/images/app_icon.png",
-                  width: 60,
-                  height: 60,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset(
+                    "assets/images/app_icon.png",
+                    width: 80,
+                    height: 80,
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
@@ -79,10 +87,10 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'EasyPharma',
                 style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.blue.shade700,
-                  letterSpacing: 0.5,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700, // Tertiary Blue for Brand
+                  letterSpacing: 1.0,
                 ),
               ),
               const SizedBox(height: 12),
@@ -91,20 +99,20 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'Votre pharmacie en ligne',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue.shade400,
+                  fontSize: 16,
+                  color: Colors.grey.shade600, // Secondary/Grey
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 80),
 
               // Loading indicator
               SizedBox(
-                width: 25,
-                height: 25,
+                width: 40,
+                height: 40,
                 child: CircularProgressIndicator(
-                  color: Colors.blue.shade400,
-                  strokeWidth: 2.5,
+                  color: Colors.blue.shade700,
+                  strokeWidth: 3,
                 ),
               ),
               const SizedBox(height: 24),
@@ -114,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 'Chargement...',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.blue.shade500,
+                  color: Colors.blue.shade700,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -125,7 +133,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 'Version 1.0.0',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.blue.shade300,
+                  color: Colors.grey.shade400,
                   fontWeight: FontWeight.w400,
                 ),
               ),

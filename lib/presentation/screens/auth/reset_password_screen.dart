@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
 import 'package:easypharma_flutter/core/utils/validators.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String? resetToken;
@@ -60,30 +61,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       });
 
       // Message de succès
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mot de passe réinitialisé avec succès !'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
-        ),
+      NotificationHelper.showSuccess(
+        context,
+        'Mot de passe réinitialisé avec succès !',
       );
 
       // Rediriger vers le login après 2 secondes
       await Future.delayed(const Duration(seconds: 2));
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
 
       // Message d'erreur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      NotificationHelper.showError(context, 'Erreur: ${e.toString()}');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
 import 'package:easypharma_flutter/core/utils/validators.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -44,14 +45,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       });
 
       // Message de succès
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.',
-          ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 5),
-        ),
+      NotificationHelper.showSuccess(
+        context,
+        'Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.',
       );
     } catch (e) {
       setState(() {
@@ -59,19 +55,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       });
 
       // Message d'erreur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      NotificationHelper.showError(context, 'Erreur: ${e.toString()}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade50,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.blue.shade700),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -82,11 +81,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 // Logo and welcome
                 const SizedBox(height: 40),
-                Icon(
-                  Icons.lock_reset,
-                  size: 80,
-                  color: Theme.of(context).primaryColor,
-                ),
+                Icon(Icons.lock_reset, size: 80, color: Colors.blue.shade700),
                 const SizedBox(height: 20),
                 Text(
                   'Réinitialiser votre mot de passe',
@@ -180,9 +175,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onPressed: _isLoading ? null : _sendResetEmail,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                   ),
                   child:
                       _isLoading
@@ -214,7 +206,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/login');
                       },
-                      child: const Text('Se connecter'),
+                      child: Text(
+                        'Se connecter',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 /// Widget réutilisable pour la barre de recherche rapide de médicaments
 class MedicationSearchBar extends StatefulWidget {
@@ -67,13 +68,19 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                         )
                         : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
               onChanged: (value) {
                 setState(() {});
@@ -109,10 +116,9 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                       userLon: widget.userLon,
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Entrez au moins 3 caractères'),
-                      ),
+                    NotificationHelper.showError(
+                      context,
+                      'Entrez au moins 3 caractères',
                     );
                   }
                 },
@@ -365,11 +371,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -413,10 +415,14 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
       label: Text(label),
       selected: selected,
       onSelected: onSelected,
-      selectedColor: Colors.blue.shade100,
+      selectedColor: Colors.blue.shade700,
+      backgroundColor: Colors.grey.shade100,
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       labelStyle: TextStyle(
-        color: selected ? Colors.blue.shade800 : Colors.black87,
+        color: selected ? Colors.white : Colors.black87,
         fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 13,
       ),
     );
   }
