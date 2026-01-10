@@ -103,7 +103,7 @@ class PharmacyMedication {
   final String medicationId;
   final String pharmacyId;
   final double price;
-  final int quantityInStock;
+  final int stockQuantity;
   final Medication medication;
   final Pharmacy pharmacy;
 
@@ -112,7 +112,7 @@ class PharmacyMedication {
     required this.medicationId,
     required this.pharmacyId,
     required this.price,
-    required this.quantityInStock,
+    required this.stockQuantity,
     required this.medication,
     required this.pharmacy,
   });
@@ -123,11 +123,13 @@ class PharmacyMedication {
       medicationId: json['medicationId'] as String? ?? '',
       pharmacyId: json['pharmacyId'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      // Tenter plusieurs champs possibles pour le stock
-      quantityInStock:
-          (json['quantityInStock'] ?? json['stock'] ?? json['quantity'])
-              as int? ??
-          0,
+      // Backend Java retourne stockQuantity
+      stockQuantity: _parseQuantityInStock(
+        json['stockQuantity'] ??
+            json['quantityInStock'] ??
+            json['stock'] ??
+            json['quantity'],
+      ),
       medication:
           json['medication'] != null
               ? Medication.fromJson(json['medication'] as Map<String, dynamic>)
@@ -162,10 +164,27 @@ class PharmacyMedication {
       'medicationId': medicationId,
       'pharmacyId': pharmacyId,
       'price': price,
-      'quantityInStock': quantityInStock,
+      'stockQuantity': stockQuantity,
       'medication': medication.toJson(),
       'pharmacy': pharmacy.toJson(),
     };
+  }
+
+  /// Conversion sûre du champ quantité en stock
+  /// Gère les types : int, double, String, null
+  static int _parseQuantityInStock(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (e) {
+        return 0;
+      }
+    }
+    // Type inconnu
+    return 0;
   }
 }
 

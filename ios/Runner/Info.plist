@@ -24,6 +24,18 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+	<!-- Permissions explanations shown to the user when the app requests access -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>L'application nécessite l'accès à votre position pour trouver des pharmacies et services proches.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>L'application utilise votre position pour améliorer la précision des services et livraisons.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>L'application nécessite l'accès à la caméra pour prendre des photos de prescriptions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>L'application nécessite l'accès à votre bibliothèque pour sélectionner des images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>L'application peut sauvegarder des images dans votre bibliothèque pour les prescriptions.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

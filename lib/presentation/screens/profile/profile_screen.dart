@@ -13,62 +13,11 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   // Variables pour suivre l'état
-  bool _isLoading = true;
-  User? _user;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // METHODE 1: Récupérer depuis AuthProvider (RECOMMANDÉ)
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-      // Si l'utilisateur est déjà dans le provider, l'utiliser
-      if (authProvider.user != null) {
-        setState(() {
-          _user = authProvider.user;
-          _isLoading = false;
-          _error = null;
-        });
-        return;
-      }
-
-      // METHODE 2: Si pas dans le provider, essayer de rafraîchir
-      final refreshedUser = await authProvider.getCurrentUser();
-
-      if (refreshedUser != null) {
-        setState(() {
-          _user = refreshedUser;
-          _isLoading = false;
-          _error = null;
-        });
-      } else {
-        // Pas d'utilisateur trouvé
-        setState(() {
-          _error = ' Aucun utilisateur connecté ';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print(' Error loading user data : $e ');
-      setState(() {
-        _error = ' Erreur de chargement : ${e.toString()} ';
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -89,57 +38,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black87),
-            onPressed: _loadUserData,
-            tooltip: 'Actualiser',
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.black87),
-            onPressed: () async {
-              final bool? shouldRefresh =
-                  await Navigator.pushNamed(context, '/edit-profile') as bool?;
-              if (shouldRefresh == true) {
-                _loadUserData();
-              }
+            icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
+            onPressed: () {
+              // Simplifié : on navigue juste, le retour automatique fera le reste
+              Navigator.pushNamed(context, '/edit-profile');
             },
           ),
         ],
       ),
-      body: _buildContent(),
+      body: _buildBody(authProvider, user),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null || _user == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            const Text('Erreur de chargement', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Text(
-              _error ?? 'Données utilisateur introuvable',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadUserData,
-              child: const Text('Réessayer'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return _buildProfileContent(_user!);
+Widget _buildBody(AuthProvider authProvider, User? user) {
+  // LIGNE À MODIFIER : Utilise l'état isLoading du provider
+  if (authProvider.isLoading && user == null) {
+    return const Center(child: CircularProgressIndicator());
   }
-
+  if (user == null) {
+    return const Center(child: Text("Utilisateur non connecté"));
+  }
+  return _buildProfileContent(user); 
+}
   Widget _buildProfileContent(User user) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -445,7 +365,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
                 const SizedBox(width: 12),
-                const Text('Attention !'),
+                const Expanded(child: Text('Attention !')),
               ],
             ),
             content: Column(
@@ -556,8 +476,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: Row(
                 children: [
                   Icon(Icons.delete_forever, color: Colors.red.shade700),
-                  const SizedBox(width: 12),
-                  const Text('Confirmation finale'),
+                  const SizedBox(width: 14),
+                  const Expanded(child: Text('Confirmation finale')),
                 ],
               ),
               content: const Text(
@@ -674,7 +594,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         NotificationHelper.showSuccess(context, 'Compte supprimé avec succès');
       }
 
-      // Navigate to login
+      // Navigate to login after showing the success message
       if (context.mounted) {
         await Future.delayed(const Duration(milliseconds: 500));
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);

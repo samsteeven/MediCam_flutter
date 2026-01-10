@@ -70,12 +70,19 @@ class ApiConstants {
   static const String myDeliveryStats = '/deliveries/my-stats';
   static const String myDeliveries = '/deliveries/my-deliveries';
   static const String ongoingDeliveries = '/deliveries/my-deliveries/ongoing';
+  static const String availableDeliveries = '/deliveries/available';
   static String deliveryStatus(String deliveryId) =>
       '/deliveries/$deliveryId/status';
   static String deliveryProof(String deliveryId) =>
       '/deliveries/$deliveryId/proof';
   static String deliveryLocation(String deliveryId) =>
       '/deliveries/$deliveryId/location';
+  static String acceptDelivery(String deliveryId) =>
+      '/deliveries/$deliveryId/accept';
+  static String deliveryDetails(String deliveryId) => '/deliveries/$deliveryId';
+  static const String deliveryStats = '/deliveries/stats';
+  static String cancelDelivery(String deliveryId) =>
+      '/deliveries/$deliveryId/cancel';
   static const String assignDelivery = '/deliveries/assign';
 
   // === NOTIFICATIONS ===

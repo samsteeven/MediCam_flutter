@@ -9,6 +9,7 @@ import 'package:easypharma_flutter/presentation/providers/medication_provider.da
 import 'package:easypharma_flutter/presentation/providers/cart_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/orders_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/prescription_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/pharmacies_provider.dart';
 import 'package:easypharma_flutter/data/models/order_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -18,6 +19,7 @@ import 'package:path/path.dart' as path;
 import 'package:http_parser/http_parser.dart';
 import 'package:easypharma_flutter/presentation/providers/review_provider.dart';
 import 'package:easypharma_flutter/core/utils/notification_helper.dart';
+import 'package:easypharma_flutter/presentation/screens/pharmacy/pharmacy_reviews_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -34,24 +36,40 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Tenter de récupérer la localisation si elle n'est pas déjà là
       final locationProvider = context.read<LocationProvider>();
       if (locationProvider.userLocation == null) {
         locationProvider.ensureLocation();
       }
+      // Charger les données essentielles à l'ouverture
+      final ordersProvider = context.read<OrdersProvider>();
+      final pharmaciesProvider = context.read<PharmaciesProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+      final medProvider = context.read<MedicationProvider>();
+      final prescriptionProvider = context.read<PrescriptionProvider>();
+
+      // Historique / commandes
+      ordersProvider.fetchMyOrders();
+
+      // Pharmacies (pour affichage des noms, inventaires...)
+      pharmaciesProvider.fetchAllPharmacies();
+
+      // Notifications : initialise et démarre le polling (attendre le fetch initial)
+      await notificationProvider.initialize();
+
+      // Prescriptions de l'utilisateur
+      prescriptionProvider.fetchMyPrescriptions();
+
+      // Charger les top médicaments pour la page d'accueil (une seule fois)
+      if (!_hasLoadedInitialMedications) {
+        medProvider.fetchTopSoldMedications();
+        _hasLoadedInitialMedications = true;
+      }
+
+      // Ecoute des alertes locales (UI badge etc.)
       _setupNotificationListener();
     });
-  }
-
-  void _setupNotificationListener() {
-    _notificationSubscription = context
-        .read<NotificationProvider>()
-        .alertStream
-        .listen((message) {
-          if (!mounted) return;
-          NotificationHelper.showInfo(context, message);
-        });
   }
 
   @override
@@ -60,137 +78,125 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     super.dispose();
   }
 
+  void _setupNotificationListener() {
+    _notificationSubscription = context
+        .read<NotificationProvider>()
+        .alertStream
+        .listen((_) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<NavigationProvider>(
-      builder: (context, navProvider, _) {
-        return WillPopScope(
-          onWillPop: () async {
-            if (navProvider.currentIndex != 0) {
-              navProvider.setIndex(0);
-              return false;
-            }
-            return true;
-          },
-          child: Scaffold(
-            backgroundColor: Colors.grey.shade50,
-            appBar: AppBar(
-              backgroundColor: Colors.grey.shade50,
-              elevation: 0,
-              leading:
-                  navProvider.currentIndex != 0
-                      ? IconButton(
+    final navProvider = context.watch<NavigationProvider>();
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('EasyPharma'),
+            actions: [
+              Consumer<NotificationProvider>(
+                builder: (context, provider, _) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
                         icon: Icon(
-                          Icons.arrow_back,
+                          Icons.notifications_none,
                           color: Colors.blue.shade700,
                         ),
-                        onPressed: () => navProvider.setIndex(0),
-                      )
-                      : null,
-              title: Text(
-                'EasyPharma',
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              automaticallyImplyLeading: false,
-              actions: [
-                Consumer<NotificationProvider>(
-                  builder: (context, provider, _) {
-                    return Stack(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.notifications_none,
-                            color: Colors.blue.shade700,
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/notifications');
-                          },
-                          tooltip: 'Notifications',
-                        ),
-                        if (provider.unreadCount > 0)
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                        onPressed:
+                            () =>
+                                Navigator.pushNamed(context, '/notifications'),
+                      ),
+                      if (provider.unreadCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              '${provider.unreadCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
-                              constraints: const BoxConstraints(
-                                minWidth: 16,
-                                minHeight: 16,
-                              ),
-                              child: Text(
-                                '${provider.unreadCount}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                      ],
-                    );
-                  },
+                        ),
+                    ],
+                  );
+                },
+              ),
+              IconButton(
+                icon: _buildCartIcon(
+                  cartProvider,
+                  navProvider.currentIndex == 2,
                 ),
-                IconButton(
-                  icon: Icon(Icons.person_outline, color: Colors.blue.shade700),
-                  onPressed: () => Navigator.pushNamed(context, '/profile'),
-                  tooltip: 'Mon profil',
-                ),
-              ],
-            ),
-            body: IndexedStack(
-              index: navProvider.currentIndex,
-              children: [
-                _buildHomeView(context),
-                _buildSearchView(),
-                _buildCartView(),
-                _buildHistoryView(),
-              ],
-            ),
-            bottomNavigationBar: Consumer<CartProvider>(
-              builder: (context, cartProvider, _) {
-                return BottomNavigationBar(
-                  backgroundColor: Colors.white,
-                  selectedItemColor: Colors.blue.shade700,
-                  unselectedItemColor: Colors.grey.shade400,
-                  type: BottomNavigationBarType.fixed,
-                  items: [
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.home_outlined),
-                      activeIcon: Icon(Icons.home),
-                      label: 'Accueil',
-                    ),
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.search_outlined),
-                      activeIcon: Icon(Icons.search),
-                      label: 'Recherche',
-                    ),
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.shopping_cart_outlined),
-                      activeIcon: Icon(Icons.shopping_cart),
-                      label: 'Panier',
-                    ),
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.history_outlined),
-                      activeIcon: Icon(Icons.history),
-                      label: 'Historique',
-                    ),
-                  ],
-                  currentIndex: navProvider.currentIndex,
-                  onTap: (index) => navProvider.setIndex(index),
-                );
-              },
-            ),
+                onPressed: () => navProvider.setIndex(2),
+              ),
+              IconButton(
+                icon: Icon(Icons.person_outline, color: Colors.blue.shade700),
+                onPressed: () => Navigator.pushNamed(context, '/profile'),
+                tooltip: 'Mon profil',
+              ),
+            ],
+          ),
+          body: IndexedStack(
+            index: navProvider.currentIndex,
+            children: [
+              _buildHomeView(context),
+              _buildSearchView(),
+              _buildCartView(),
+              _buildHistoryView(),
+            ],
+          ),
+          bottomNavigationBar: Consumer<CartProvider>(
+            builder: (context, cartProvider, _) {
+              return BottomNavigationBar(
+                backgroundColor: Colors.white,
+                selectedItemColor: Colors.blue.shade700,
+                unselectedItemColor: Colors.grey.shade400,
+                type: BottomNavigationBarType.fixed,
+                items: [
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.home_outlined),
+                    activeIcon: Icon(Icons.home),
+                    label: 'Accueil',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.search_outlined),
+                    activeIcon: Icon(Icons.search),
+                    label: 'Recherche',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.shopping_cart_outlined),
+                    activeIcon: Icon(Icons.shopping_cart),
+                    label: 'Panier',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.history_outlined),
+                    activeIcon: Icon(Icons.history),
+                    label: 'Historique',
+                  ),
+                ],
+                currentIndex: navProvider.currentIndex,
+                onTap: (index) => navProvider.setIndex(index),
+              );
+            },
           ),
         );
       },
@@ -200,7 +206,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   Widget _buildCartIcon(CartProvider cartProvider, bool isActive) {
     return Stack(
       children: [
-        Icon(isActive ? Icons.shopping_cart : Icons.shopping_cart_outlined),
+        Icon(Icons.shopping_cart_outlined),
         if (cartProvider.totalItems > 0)
           Positioned(
             right: 0,
@@ -226,8 +232,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       ],
     );
   }
-
-  // Widget _buildContent supprimé car remplacé par IndexedStack dans le body
 
   Widget _buildHomeView(BuildContext context) {
     return SingleChildScrollView(
@@ -268,7 +272,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             itemBuilder: (context, index) {
               final pm = medProvider.searchResults[index];
               final med = pm.medication;
-              final isOutOfStock = pm.quantityInStock <= 0;
+              final isOutOfStock = pm.stockQuantity <= 0;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -339,7 +343,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                   child: Text(
                                     isOutOfStock
                                         ? 'Rupture'
-                                        : 'Stock: ${pm.quantityInStock}',
+                                        : 'Stock: ${pm.stockQuantity}',
                                     style: TextStyle(
                                       color:
                                           isOutOfStock
@@ -423,7 +427,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               Row(
                 children: [
                   const Text(
-                    'Bienvenue, ',
+                    'Bienvenue, M. ',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -433,7 +437,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   Consumer<AuthProvider>(
                     builder:
                         (context, authProvider, _) => Text(
-                          authProvider.user?.firstName ?? 'Utilisateur',
+                          authProvider.user?.lastName ?? 'Utilisateur',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -495,7 +499,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black, // Secondary Black
+                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 12),
@@ -548,7 +552,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black, // Secondary Black
+                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 12),
@@ -716,14 +720,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     final locationProvider = context.watch<LocationProvider>();
     return Consumer<MedicationProvider>(
       builder: (context, medProvider, _) {
-        // Charger tous les médicaments au premier affichage SEULEMENT
         if (!_hasLoadedInitialMedications &&
             medProvider.searchResults.isEmpty &&
             !medProvider.isLoading) {
           _hasLoadedInitialMedications = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             medProvider.searchMedications(
-              '', // Query vide pour tout afficher
+              '',
               userLat: locationProvider.userLocation?.latitude,
               userLon: locationProvider.userLocation?.longitude,
               sortBy: 'NEAREST',
@@ -1082,11 +1085,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     if (cart.requiresPrescription) {
       final hasConfirmed = await _showPrescriptionUploadDialog(context);
       if (!hasConfirmed) return;
+      if (!mounted) return;
     }
 
-    // Dans une appli réelle, on pourrait avoir plusieurs pharmacies dans le panier.
-    // Ici on simplifie en prenant la pharmacie du premier item.
     final firstItem = cart.items.values.first;
+    final auth = context.read<AuthProvider>();
+    final location = context.read<LocationProvider>();
+    final addressData = await location.getAddressFromLocation();
+    if (!mounted) return;
 
     final request = CreateOrderRequest(
       pharmacyId: firstItem.pharmacy.id,
@@ -1099,18 +1105,31 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ),
               )
               .toList(),
+      deliveryAddress:
+          addressData != null ? addressData['address'] : auth.user?.address,
+      deliveryCity: addressData != null ? addressData['city'] : auth.user?.city,
+      deliveryLatitude: location.userLocation?.latitude,
+      deliveryLongitude: location.userLocation?.longitude,
+      deliveryPhone: auth.user?.phone,
     );
 
     try {
-      await context.read<OrdersProvider>().createOrder(request);
+      await context.read<OrdersProvider>().createOrder(
+        request,
+        onOrderCreated: () async {
+          await context.read<NotificationProvider>().fetchNotifications();
+        },
+      );
+      if (!mounted) return;
       cart.clear();
       NotificationHelper.showSuccess(
         context,
         'Commande validée avec succès !',
         onTap: () => context.read<NavigationProvider>().setIndex(3),
       );
-      context.read<NavigationProvider>().setIndex(3); // Go to history
+      context.read<NavigationProvider>().setIndex(3);
     } catch (e) {
+      if (!mounted) return;
       NotificationHelper.showError(context, 'Erreur: $e');
     }
   }
@@ -1207,7 +1226,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                 ? null
                                 : () async {
                                   try {
-                                    // Afficher un loader
                                     showDialog(
                                       context: context,
                                       barrierDismissible: false,
@@ -1217,7 +1235,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                           ),
                                     );
 
-                                    // Préparer le FormData
                                     final formData = FormData.fromMap({
                                       'file': await MultipartFile.fromFile(
                                         pickedFile!.path,
@@ -1233,16 +1250,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                       ),
                                     });
 
-                                    // Upload
                                     await context
                                         .read<PrescriptionProvider>()
                                         .uploadPrescription(formData);
 
-                                    // Fermer les dialogs
-                                    Navigator.pop(context); // Loader
-                                    Navigator.pop(context, true); // Dialog
+                                    Navigator.pop(context);
+                                    Navigator.pop(context, true);
                                   } catch (e) {
-                                    Navigator.pop(context); // Loader
+                                    Navigator.pop(context);
                                     NotificationHelper.showError(
                                       context,
                                       'Erreur d\'upload: $e',
@@ -1336,310 +1351,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  Widget _buildCartBottomBar(BuildContext context, CartProvider cartProvider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Total',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                Text(
-                  '${cartProvider.totalPrice.toStringAsFixed(2)} FCFA',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
-                  ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: () => _showCheckoutDialog(context, cartProvider),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Commander',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showClearCartDialog(BuildContext context, CartProvider cartProvider) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Vider le panier'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir vider tout le panier ?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () {
-                  cartProvider.clearCart();
-                  Navigator.pop(context);
-                  NotificationHelper.showSuccess(context, 'Panier vidé');
-                },
-                child: const Text('Vider', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showCheckoutDialog(BuildContext context, CartProvider cartProvider) {
-    showDialog(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Confirmer la commande'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total: ${cartProvider.totalPrice.toStringAsFixed(2)} FCFA',
-                ),
-                Text('Articles: ${cartProvider.totalItems}'),
-                Text('Pharmacies: ${cartProvider.pharmacyCount}'),
-                const SizedBox(height: 8),
-                Text(
-                  'Vous allez passer ${cartProvider.pharmacyCount} commande(s).',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Annuler'),
-              ),
-              Consumer<OrdersProvider>(
-                builder: (context, ordersProvider, _) {
-                  return ElevatedButton(
-                    onPressed:
-                        ordersProvider.isLoading
-                            ? null
-                            : () => _processOrders(
-                              context,
-                              dialogContext,
-                              cartProvider,
-                              ordersProvider,
-                            ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                    ),
-                    child:
-                        ordersProvider.isLoading
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                            : const Text('Confirmer'),
-                  );
-                },
-              ),
-            ],
-          ),
-    );
-  }
-
-  Future<void> _processOrders(
-    BuildContext context,
-    BuildContext dialogContext,
-    CartProvider cartProvider,
-    OrdersProvider ordersProvider,
-  ) async {
-    // Fermer le dialogue de confirmation
-    Navigator.pop(dialogContext);
-
-    // Afficher un indicateur de chargement
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => const Center(
-            child: Card(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Traitement de vos commandes...'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-    );
-
-    try {
-      // Créer une commande pour chaque pharmacie
-      final pharmacyIds = cartProvider.cartByPharmacy.keys.toList();
-      int successCount = 0;
-      int failCount = 0;
-      List<String> errorMessages = [];
-
-      for (final pharmacyId in pharmacyIds) {
-        final items = cartProvider.cartByPharmacy[pharmacyId]!;
-
-        // Créer la requête de commande
-        final orderRequest = CreateOrderRequest(
-          pharmacyId: pharmacyId,
-          items:
-              items
-                  .map(
-                    (item) => CreateOrderItem(
-                      medicationId: item.medication.id,
-                      quantity: item.quantity,
-                    ),
-                  )
-                  .toList(),
-        );
-
-        try {
-          // Envoyer la commande au backend
-          await ordersProvider.createOrder(orderRequest);
-          successCount++;
-        } catch (e) {
-          failCount++;
-          errorMessages.add(
-            'Pharmacie ${items.first.pharmacy.name}: ${e.toString()}',
-          );
-        }
-      }
-
-      // Fermer l'indicateur de chargement
-      if (context.mounted) Navigator.pop(context);
-
-      // Afficher le résultat
-      if (failCount == 0) {
-        // Toutes les commandes ont réussi
-        if (context.mounted) {
-          cartProvider.clearCart();
-
-          NotificationHelper.showSuccess(
-            context,
-            '$successCount commande(s) créée(s) avec succès !',
-          );
-
-          // Naviguer vers l'historique
-          context.read<NavigationProvider>().setIndex(3);
-        }
-      } else if (successCount == 0) {
-        // Toutes les commandes ont échoué
-        if (context.mounted) {
-          _showErrorDialog(
-            context,
-            'Échec de la commande',
-            'Aucune commande n\'a pu être créée.\n\n${errorMessages.join('\n')}',
-          );
-        }
-      } else {
-        // Succès partiel
-        if (context.mounted) {
-          // Supprimer du panier uniquement les commandes réussies
-          // Pour l'instant on garde tout, mais vous pouvez implémenter une logique plus fine
-
-          _showErrorDialog(
-            context,
-            'Commandes partiellement traitées',
-            '$successCount commande(s) créée(s), $failCount échouée(s).\n\n${errorMessages.join('\n')}',
-            isWarning: true,
-          );
-        }
-      }
-    } catch (e) {
-      // Erreur générale
-      if (context.mounted) {
-        Navigator.pop(context); // Fermer l'indicateur de chargement
-
-        NotificationHelper.showError(context, 'Erreur: ${e.toString()}');
-      }
-    }
-  }
-
-  void _showErrorDialog(
-    BuildContext context,
-    String title,
-    String message, {
-    bool isWarning = false,
-  }) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(
-                  isWarning ? Icons.warning : Icons.error,
-                  color: isWarning ? Colors.orange : Colors.red,
-                ),
-                const SizedBox(width: 8),
-                Text(title),
-              ],
-            ),
-            content: SingleChildScrollView(child: Text(message)),
-            actions: [
-              if (isWarning)
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.read<NavigationProvider>().setIndex(3);
-                  },
-                  child: const Text('Voir l\'historique'),
-                ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-    );
-  }
-
   Widget _buildHistoryView() {
     return Consumer<OrdersProvider>(
       builder: (context, ordersProvider, _) {
@@ -1690,22 +1401,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.history_outlined,
-                    size: 40,
-                    color: Colors.orange.shade700,
-                  ),
+                Icon(
+                  Icons.history_outlined,
+                  size: 60,
+                  color: Colors.orange.shade200,
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Historique',
+                  'Aucune commande',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -1714,9 +1417,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Aucune commande pour le moment',
+                  'Vous n\'avez pas encore passé de commande. Commandez un médicament pour voir votre historique ici.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
@@ -1760,9 +1463,23 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Navigation vers les détails de la commande
-          // Navigator.pushNamed(context, '/order-details', arguments: order.id);
+        onTap: () async {
+          final pname = Provider.of<OrdersProvider>(
+            context,
+            listen: false,
+          ).pharmacyNameFor(order.pharmacyId);
+          // Précharger les avis
+          context.read<ReviewProvider>().fetchPharmacyReviews(order.pharmacyId);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => PharmacyReviewsScreen(
+                    pharmacyId: order.pharmacyId,
+                    pharmacyName: pname,
+                  ),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -1774,27 +1491,50 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 children: [
                   Text(
                     'Commande #${order.id.substring(0, 8)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: Colors.blue.shade700,
                     ),
                   ),
-                  _buildStatusChip(order.status),
+                  Text(
+                    order.status.displayName,
+                    style: TextStyle(
+                      color: _getStatusColor(order.status),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: Colors.grey.shade600,
+                  Expanded(
+                    child: Text(
+                      'Pharmacie : ${Provider.of<OrdersProvider>(context, listen: false).pharmacyNameFor(order.pharmacyId)}',
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _formatDate(order.createdAt),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final pname = Provider.of<OrdersProvider>(
+                        context,
+                        listen: false,
+                      ).pharmacyNameFor(order.pharmacyId);
+                      context.read<ReviewProvider>().fetchPharmacyReviews(
+                        order.pharmacyId,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => PharmacyReviewsScreen(
+                                pharmacyId: order.pharmacyId,
+                                pharmacyName: pname,
+                              ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.star, size: 16),
+                    label: const Text('Avis'),
                   ),
                 ],
               ),
@@ -1851,60 +1591,22 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  Widget _buildStatusChip(OrderStatus status) {
-    late Color textColor;
-
+  Color _getStatusColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.PENDING:
-        textColor = Colors.orange.shade700;
-        break;
+        return Colors.orange.shade700;
       case OrderStatus.CONFIRMED:
-        textColor = Colors.blue.shade700;
-        break;
+        return Colors.blue.shade700;
       case OrderStatus.PREPARED:
-        textColor = Colors.purple.shade700;
-        break;
+        return Colors.purple.shade700;
       case OrderStatus.READY_FOR_PICKUP:
-        textColor = Colors.green.shade700;
-        break;
+        return Colors.green.shade700;
       case OrderStatus.COMPLETED:
-        textColor = Colors.teal.shade700;
-        break;
+        return Colors.teal.shade700;
       case OrderStatus.CANCELLED:
-        textColor = Colors.red.shade700;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: textColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: textColor, width: 1),
-      ),
-      child: Text(
-        status.displayName,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 11,
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'Aujourd\'hui ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
-      return 'Hier ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays < 7) {
-      return 'Il y a ${difference.inDays} jours';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
+        return Colors.red.shade700;
     }
   }
+
+  // _formatDate removed (unused)
 }

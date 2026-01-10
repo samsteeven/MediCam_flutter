@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
+import 'package:easypharma_flutter/core/utils/permissions_requester.dart';
 import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
 import 'package:easypharma_flutter/core/utils/validators.dart';
 import 'package:easypharma_flutter/core/utils/notification_helper.dart';
+import 'package:easypharma_flutter/data/models/notification_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -37,9 +38,33 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      // Initialize notifications after successful login
+      // Initialize notifications after successful login and ensure welcome
       if (mounted) {
-        context.read<NotificationProvider>().initialize();
+        final notifProvider = context.read<NotificationProvider>();
+        await notifProvider.initialize();
+
+        // If no welcome notification exists yet, inject one locally.
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final hasWelcome = notifProvider.notifications.any(
+          (n) => n.type == 'WELCOME',
+        );
+        if (!hasWelcome) {
+          final roleName = auth.user?.role.name.toLowerCase() ?? 'patient';
+          notifProvider.addLocalNotification(
+            NotificationDTO(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              title: 'Bienvenue',
+              message: 'Bienvenue sur EasyPharma en tant que $roleName.',
+              createdAt: DateTime.now(),
+              isRead: false,
+              type: 'WELCOME',
+            ),
+          );
+        }
+        // Request in-app permissions (notifications, location, camera, storage)
+        try {
+          await requestAllPermissions();
+        } catch (_) {}
       }
 
       // Naviguer vers l'accueil en fonction du rôle

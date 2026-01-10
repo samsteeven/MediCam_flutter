@@ -326,14 +326,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({
+  Future<bool> updateProfile({
     required String firstName,
     required String lastName,
     required String phone,
     String? address,
     String? city,
   }) async {
-    if (_user == null) return;
+    if (_user == null) return false;
 
     _isLoading = true;
     notifyListeners();
@@ -375,17 +375,16 @@ class AuthProvider with ChangeNotifier {
       }
 
       _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
       _error = e.toString();
       print('=== UPDATE PROFILE ERROR ===');
       print('Error: $e');
-
-      // Afficher un message d'erreur si context est fourni
-
-      rethrow;
-    } finally {
       _isLoading = false;
       notifyListeners();
+      return false;
     }
   }
 

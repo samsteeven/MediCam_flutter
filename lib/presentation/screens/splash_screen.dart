@@ -1,4 +1,3 @@
-import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
@@ -18,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeApp();
-      context.read<LocationProvider>().ensureLocation();
     });
   }
 
@@ -34,8 +32,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (authProvider.isAuthenticated) {
-      // Initialize notifications for authenticated users
-      context.read<NotificationProvider>().initialize();
+      // Initialize notifications for authenticated users (await fetch)
+      await context.read<NotificationProvider>().initialize();
 
       // Rediriger vers l'écran d'accueil basé sur le rôle
       final homeRoute = authProvider.homeRoute ?? '/patient-home';

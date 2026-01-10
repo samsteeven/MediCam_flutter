@@ -32,7 +32,7 @@ void main() {
               'medicationId': 'med-1',
               'pharmacyId': 'pharm-1',
               'price': 2500.0,
-              'quantityInStock': 100,
+              'stockQuantity': 100,
               'medication': {
                 'id': 'med-1',
                 'name': 'Paracétamol',
@@ -69,7 +69,7 @@ void main() {
         expect(result, isA<List<PharmacyMedication>>());
         expect(result.length, 1);
         expect(result[0].medication.name, 'Paracétamol');
-        expect(result[0].quantityInStock, 100);
+        expect(result[0].stockQuantity, 100);
       },
     );
 
@@ -84,7 +84,7 @@ void main() {
             'medicationId': 'med-1',
             'pharmacyId': 'pharm-1',
             'price': 2500.0,
-            'quantityInStock': 50,
+            'stockQuantity': 50,
             'medication': {
               'id': 'med-1',
               'name': 'Paracétamol',
@@ -108,7 +108,8 @@ void main() {
       );
 
       when(
-        () => mockDio.get('/api/v1/medications/med-1/prices'),
+        () =>
+            mockDio.get(any(), queryParameters: any(named: 'queryParameters')),
       ).thenAnswer((_) async => mockResponse);
 
       // Act
@@ -146,7 +147,7 @@ void main() {
 
         when(
           () => mockDio.get(
-            '/api/v1/pharmacies/nearby',
+            any(),
             queryParameters: any(named: 'queryParameters'),
           ),
         ).thenAnswer((_) async => mockResponse);
@@ -196,7 +197,7 @@ void main() {
             'medicationId': 'med-1',
             'pharmacyId': 'pharm-1',
             'price': 2500.0,
-            'quantityInStock': 100,
+            'stockQuantity': 100,
             'medication': {
               'id': 'med-1',
               'name': 'Paracétamol',
@@ -254,7 +255,7 @@ void main() {
           medicationId: 'm1',
           pharmacyId: 'p1',
           price: 1000,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'm1',
             name: 'Paracétamol',
@@ -269,7 +270,7 @@ void main() {
           medicationId: 'm2',
           pharmacyId: 'p1',
           price: 2000,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'm2',
             name: 'Amoxicilline',
@@ -300,7 +301,7 @@ void main() {
           medicationId: 'med-1',
           pharmacyId: 'pharm-1',
           price: 2000.0,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'med-1',
             name: 'Med 1',
@@ -325,7 +326,7 @@ void main() {
           medicationId: 'med-1',
           pharmacyId: 'pharm-2',
           price: 5000.0,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'med-1',
             name: 'Med 1',
@@ -363,7 +364,7 @@ void main() {
           medicationId: 'med-1',
           pharmacyId: 'pharm-1',
           price: 5000.0,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'med-1',
             name: 'Med 1',
@@ -388,7 +389,7 @@ void main() {
           medicationId: 'med-1',
           pharmacyId: 'pharm-2',
           price: 2000.0,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: 'med-1',
             name: 'Med 1',
@@ -426,7 +427,7 @@ void main() {
           medicationId: 'm1',
           pharmacyId: 'p1',
           price: 1000,
-          quantityInStock: 10,
+          stockQuantity: 10,
           medication: Medication(
             id: '1',
             name: 'Test',
