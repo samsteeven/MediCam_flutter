@@ -173,7 +173,7 @@ Future<Map<String, dynamic>?> testUniqueRegistration() async {
           },
           body: body,
         )
-        .timeout(const Duration(seconds: 15));
+        .timeout(const Duration(seconds: 20));
 
     print('📊 Status: ${response.statusCode}');
 

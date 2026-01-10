@@ -5,10 +5,29 @@ import 'package:easypharma_flutter/presentation/providers/navigation_provider.da
 import 'package:easypharma_flutter/data/models/notification_model.dart';
 import 'package:intl/intl.dart';
 
-class NotificationCenterScreen extends StatelessWidget {
+class NotificationCenterScreen extends StatefulWidget {
   static const String routeName = '/notifications';
 
   const NotificationCenterScreen({super.key});
+
+  @override
+  State<NotificationCenterScreen> createState() =>
+      _NotificationCenterScreenState();
+}
+
+class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Toujours tenter de rafraîchir les notifications à l'arrivée
+      try {
+        context.read<NotificationProvider>().fetchNotifications();
+      } catch (e) {
+        debugPrint('Error initializing notifications: $e');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +54,32 @@ class NotificationCenterScreen extends StatelessWidget {
           }
 
           if (provider.notifications.isEmpty) {
-            return const Center(
-              child: Text('Aucune notification pour le moment.'),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 60,
+                    color: Colors.blue.shade200,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Aucune notification',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Vous n\'avez pas encore reçu de notification. Les notifications importantes (commandes, ordonnances, etc.) s\'afficheront ici.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
             );
           }
 

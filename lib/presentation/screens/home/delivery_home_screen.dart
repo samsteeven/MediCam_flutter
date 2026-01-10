@@ -199,7 +199,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Text(
-                      'Bienvenue, ',
+                      'Bienvenue, M. ',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
@@ -209,7 +209,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                     Consumer<AuthProvider>(
                       builder:
                           (context, authProvider, _) => Text(
-                            authProvider.user?.firstName ?? 'Livreur',
+                            authProvider.user?.lastName ?? 'Livreur',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -313,7 +313,8 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.5,
+                  // Use square tiles like patient home
+                  childAspectRatio: 1.0,
                   children: [
                     _buildShortcutCard(
                       icon: Icons.local_shipping_outlined,

@@ -20,8 +20,8 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: url,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -392,7 +392,6 @@ class ApiService {
 
   // Check if user is authenticated
   Future<bool> isAuthenticated() async {
-    // MODIFIEZ cette ligne :
     final token = await _secureStorage.read(key: AppConstants.accessTokenKey);
     return token != null && token.isNotEmpty;
   }

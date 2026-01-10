@@ -1,18 +1,18 @@
+import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
+import 'package:easypharma_flutter/data/repositories/delivery_repository.dart';
+import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
-import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/repositories/auth_repository.dart';
 import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
-import 'package:easypharma_flutter/data/repositories/delivery_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
-import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/cart_provider.dart';
 import 'package:easypharma_flutter/data/repositories/prescription_repository.dart';
@@ -55,6 +55,12 @@ void main() async {
         ChangeNotifierProvider<LocationProvider>(
           create: (context) => LocationProvider(),
         ),
+        ChangeNotifierProvider<DeliveryProvider>(
+          create:
+              (context) => DeliveryProvider(
+                DeliveryRepository(context.read<ApiService>().dio),
+              ),
+        ),
         ChangeNotifierProvider<AuthProvider>(
           create:
               (context) => AuthProvider(
@@ -73,16 +79,11 @@ void main() async {
                 MedicationRepository(context.read<ApiService>().dio),
               ),
         ),
-        ChangeNotifierProvider<DeliveryProvider>(
-          create:
-              (context) => DeliveryProvider(
-                DeliveryRepository(context.read<ApiService>().dio),
-              ),
-        ),
         ChangeNotifierProvider<NotificationProvider>(
           create:
               (context) => NotificationProvider(
                 NotificationRepository(context.read<ApiService>().dio),
+                context.read<SharedPreferences>(),
               ),
         ),
         ChangeNotifierProvider<CartProvider>(
@@ -92,6 +93,7 @@ void main() async {
           create:
               (context) => OrdersProvider(
                 OrdersRepository(context.read<ApiService>().dio),
+                pharmaciesRepository: context.read<PharmaciesRepository>(),
               ),
         ),
         ChangeNotifierProvider<PrescriptionProvider>(
@@ -164,10 +166,9 @@ class MyApp extends StatelessWidget {
         if (authProvider.isAuthenticated) {
           // Si déjà connecté, rediriger vers l'accueil
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacementNamed(
-              context,
-              authProvider.homeRoute ?? '/patient-home',
-            );
+            // Rediriger vers l'écran d'accueil basé sur le rôle (par défaut fourni par AuthProvider)
+            final route = authProvider.homeRoute ?? '/patient-home';
+            Navigator.pushReplacementNamed(context, route);
           });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -274,15 +275,6 @@ class MyApp extends StatelessWidget {
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
-      // dialogTheme: DialogTheme(
-      //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      //   backgroundColor: Colors.white,
-      //   titleTextStyle: const TextStyle(
-      //     fontSize: 20,
-      //     fontWeight: FontWeight.bold,
-      //     color: Colors.black,
-      //   ),
-      // ),
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 2,

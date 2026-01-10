@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/navigation_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
+import 'package:easypharma_flutter/core/utils/permissions_requester.dart';
 import 'package:easypharma_flutter/data/models/user_model.dart';
 import 'package:easypharma_flutter/presentation/widgets/custom_text_field.dart';
 import 'package:easypharma_flutter/core/utils/validators.dart';
 import 'package:easypharma_flutter/core/utils/notification_helper.dart';
+import 'package:easypharma_flutter/data/models/notification_model.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -76,6 +79,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final homeRoute = authProvider.homeRoute;
       // Réinitialiser les onglets de navigation en arrivant
       context.read<NavigationProvider>().reset();
+      // Ajouter une notification de bienvenue localement (si le serveur ne la crée pas)
+      try {
+        final notifProvider = Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        );
+        final roleName =
+            authProvider.user?.role.name.toLowerCase() ?? 'patient';
+        final welcome = NotificationDTO(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          title: 'Bienvenue',
+          message: 'Bienvenue sur EasyPharma en tant que $roleName.',
+          createdAt: DateTime.now(),
+          isRead: false,
+          type: 'WELCOME',
+        );
+        notifProvider.addLocalNotification(welcome);
+      } catch (_) {
+        // ignore errors - notification provider may not be available yet
+      }
+      // Demander les permissions (notifications, localisation, camera, stockage)
+      try {
+        await requestAllPermissions();
+      } catch (_) {}
       if (homeRoute != null) {
         Navigator.pushReplacementNamed(context, homeRoute);
       } else {

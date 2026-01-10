@@ -49,7 +49,7 @@ class PharmacyInventoryProvider extends ChangeNotifier {
     String pharmacyId,
     String medicationId,
     double price,
-    int quantityInStock,
+    int stockQuantity,
   ) async {
     _isLoading = true;
     _errorMessage = null;
@@ -61,7 +61,7 @@ class PharmacyInventoryProvider extends ChangeNotifier {
         pharmacyId,
         medicationId,
         price,
-        quantityInStock,
+        stockQuantity,
       );
 
       if (_inventories[pharmacyId] == null) {
@@ -81,7 +81,7 @@ class PharmacyInventoryProvider extends ChangeNotifier {
   Future<void> updateStock(
     String pharmacyId,
     String medicationId,
-    int quantityInStock,
+    int stockQuantity,
   ) async {
     _isLoading = true;
     _errorMessage = null;
@@ -92,7 +92,7 @@ class PharmacyInventoryProvider extends ChangeNotifier {
       final updated = await _repository.updateStock(
         pharmacyId,
         medicationId,
-        quantityInStock,
+        stockQuantity,
       );
 
       if (_inventories[pharmacyId] != null) {
@@ -109,6 +109,27 @@ class PharmacyInventoryProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // APRÈS la méthode updateStock existante, on peut ajouter une méthode de déduction locale
+  // pour synchroniser l'UI après une validation de commande
+  void decrementLocalStock(
+    String pharmacyId,
+    String medicationId,
+    int quantity,
+  ) {
+    if (_inventories[pharmacyId] != null) {
+      final index = _inventories[pharmacyId]!.indexWhere(
+        (m) => m.medicationId == medicationId,
+      );
+      if (index != -1) {
+        final currentStock = _inventories[pharmacyId]![index].stockQuantity;
+        // Mise à jour locale pour éviter d'attendre l'appel API complet
+        _inventories[pharmacyId]![index] = _inventories[pharmacyId]![index]
+            .copyWith(stockQuantity: currentStock - quantity);
+        notifyListeners();
+      }
     }
   }
 
