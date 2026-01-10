@@ -42,7 +42,7 @@ class PharmacyInventoryRepository {
     String pharmacyId,
     String medicationId,
     double price,
-    int quantityInStock,
+    int stockQuantity,
   ) async {
     try {
       final response = await _dio.post(
@@ -50,7 +50,7 @@ class PharmacyInventoryRepository {
         data: {
           'medicationId': medicationId,
           'price': price,
-          'quantityInStock': quantityInStock,
+          'stockQuantity': stockQuantity,
         },
       );
 
@@ -74,12 +74,12 @@ class PharmacyInventoryRepository {
   Future<PharmacyMedicationInventory> updateStock(
     String pharmacyId,
     String medicationId,
-    int quantityInStock,
+    int stockQuantity,
   ) async {
     try {
       final response = await _dio.patch(
         '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId/stock',
-        data: {'quantityInStock': quantityInStock},
+        data: {'stockQuantity': stockQuantity},
       );
 
       if (response.statusCode == 200) {

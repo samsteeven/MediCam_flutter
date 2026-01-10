@@ -131,13 +131,35 @@ class Order {
 class CreateOrderRequest {
   final String pharmacyId;
   final List<CreateOrderItem> items;
+  final String? deliveryAddress;
+  final String? deliveryCity;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final String? deliveryPhone;
+  final String? notes;
 
-  CreateOrderRequest({required this.pharmacyId, required this.items});
+  CreateOrderRequest({
+    required this.pharmacyId,
+    required this.items,
+    this.deliveryAddress,
+    this.deliveryCity,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.deliveryPhone,
+    this.notes,
+  });
 
   Map<String, dynamic> toJson() {
     return {
       'pharmacyId': pharmacyId,
       'items': items.map((item) => item.toJson()).toList(),
+      // Champs d'adresse fournis pour éviter des contraintes NOT NULL côté backend
+      'deliveryAddress': deliveryAddress ?? '',
+      'deliveryCity': deliveryCity ?? '',
+      'deliveryLatitude': deliveryLatitude,
+      'deliveryLongitude': deliveryLongitude,
+      'deliveryPhone': deliveryPhone ?? '',
+      'notes': notes ?? '',
     };
   }
 }

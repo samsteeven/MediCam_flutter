@@ -1,17 +1,15 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConstants {
   static String get baseUrl {
-    // Si on tourne sur un émulateur Android
-    if (kIsWeb) {
-      // Pour le web, on utilise l'URL publique
-      return "http://localhost:8080/api/v1";
-    }
-    // Pour iOS (simulateur ou physique) et Android physique
-    return "http://overcontentious-michelle-ungeometric.ngrok-free.dev/api/v1";
+    return "https://unconvoluted-prepreference-jeraldine.ngrok-free.dev/api/v1";
   }
 
-  // === AUTHENTIFICATION ===
+  // === ADMIN DASHBOARD ===
+  static const String adminTopSold = '/admin/dashboard/top-medications/sold';
+  static const String adminTopSearched =
+      '/admin/dashboard/top-medications/searched';
+  static const String adminStats = '/admin/dashboard/stats';
+
+  // === AUTHENTICATION ===
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static const String logout = '/auth/logout';
@@ -23,6 +21,7 @@ class ApiConstants {
   // === USERS ===
   static const String users = '/users';
   static const String updateProfile = '/users/me';
+  static const String deleteProfile = '/users/me';
   static const String updatePassword = '/users/me/password';
   static const String myPharmacyUsers = '/users/my-pharmacy';
 
@@ -42,12 +41,17 @@ class ApiConstants {
   // === INVENTORY ===
   static String pharmacyMedications(String pharmacyId) =>
       '/pharmacies/$pharmacyId/medications';
+  static String updateStock(String pharmacyId, String medicationId) =>
+      '/pharmacies/$pharmacyId/medications/$medicationId/stock';
+  static String updatePrice(String pharmacyId, String medicationId) =>
+      '/pharmacies/$pharmacyId/medications/$medicationId/price';
 
   // === MEDICATIONS ===
   static const String medications = '/medications';
   static const String searchMedications = '/medications/search';
   static const String filterMedications = '/medications/filter';
-  static const String medicationsByClass = '/medications/by-class';
+  static String medicationsByClass(String therapeuticClass) =>
+      '/medications/by-class/$therapeuticClass';
   static const String prescriptionRequired =
       '/medications/prescription-required';
 
@@ -59,22 +63,53 @@ class ApiConstants {
   static const String myOrders = '/orders/my-orders';
   static String pharmacyOrders(String pharmacyId) =>
       '/orders/pharmacy-orders/$pharmacyId';
+  static String pharmacyStats(String pharmacyId) =>
+      '/orders/pharmacy-stats/$pharmacyId';
 
   // === DELIVERIES ===
   static const String myDeliveryStats = '/deliveries/my-stats';
   static const String myDeliveries = '/deliveries/my-deliveries';
   static const String ongoingDeliveries = '/deliveries/my-deliveries/ongoing';
+  static const String availableDeliveries = '/deliveries/available';
   static String deliveryStatus(String deliveryId) =>
       '/deliveries/$deliveryId/status';
   static String deliveryProof(String deliveryId) =>
       '/deliveries/$deliveryId/proof';
   static String deliveryLocation(String deliveryId) =>
       '/deliveries/$deliveryId/location';
+  static String acceptDelivery(String deliveryId) =>
+      '/deliveries/$deliveryId/accept';
+  static String deliveryDetails(String deliveryId) => '/deliveries/$deliveryId';
+  static const String deliveryStats = '/deliveries/stats';
+  static String cancelDelivery(String deliveryId) =>
+      '/deliveries/$deliveryId/cancel';
+  static const String assignDelivery = '/deliveries/assign';
+
+  // === NOTIFICATIONS ===
+  static const String myNotifications = '/notifications/my-notifications';
+  static String markNotificationAsRead(String id) => '/notifications/$id/read';
 
   // === PAYMENTS ===
+  static const String payments = '/payments';
   static const String processPayment = '/payments/process';
+  static String orderPayment(String orderId) => '/payments/order/$orderId';
   static String paymentReceipt(String paymentId) =>
       '/payments/$paymentId/receipt';
+
+  // === REVIEWS ===
+  static const String reviews = '/reviews';
+  static String pharmacyReviews(String pharmacyId) =>
+      '/reviews/pharmacy/$pharmacyId';
+  static String moderateReview(String id) => '/reviews/$id/status';
+
+  // === PRESCRIPTIONS ===
+  static const String prescriptions = '/prescriptions';
+  static const String myPrescriptions = '/prescriptions/my-prescriptions';
+
+  // === PAYOUTS ===
+  static const String payouts = '/payouts';
+  static String pharmacyPayouts(String pharmacyId) =>
+      '/payouts/pharmacy/$pharmacyId';
 }
 
 class ApiHeaders {

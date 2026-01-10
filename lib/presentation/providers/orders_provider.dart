@@ -1,14 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:easypharma_flutter/data/models/order_model.dart';
 import 'package:easypharma_flutter/data/repositories/orders_repository.dart';
+import 'package:easypharma_flutter/data/repositories/pharmacies_repository.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
 
 class OrdersProvider extends ChangeNotifier {
   final OrdersRepository _repository;
+  final PharmaciesRepository? _pharmRepo;
 
   // État
   List<Order> _myOrders = [];
   List<Order> _pharmacyOrders = [];
   Order? _currentOrder;
+
+  // Cache des pharmacies utilisées par les commandes
+  final Map<String, Pharmacy> _pharmacyCache = {};
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -23,7 +29,8 @@ class OrdersProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
 
-  OrdersProvider(this._repository);
+  OrdersProvider(this._repository, {PharmaciesRepository? pharmaciesRepository})
+    : _pharmRepo = pharmaciesRepository;
 
   /// Récupérer les détails d'une commande
   Future<void> getOrderDetails(String orderId) async {
@@ -51,6 +58,21 @@ class OrdersProvider extends ChangeNotifier {
 
     try {
       _myOrders = await _repository.getMyOrders();
+      // Précharger les pharmacies liées aux commandes pour afficher leurs noms
+      if (_pharmRepo != null) {
+        final ids = _myOrders.map((o) => o.pharmacyId).toSet();
+        for (final id in ids) {
+          if (!_pharmacyCache.containsKey(id)) {
+            try {
+              final ph = await _pharmRepo!.getPharmacyById(id);
+              _pharmacyCache[id] = ph;
+            } catch (_) {
+              // ignore: avoid_print
+              debugPrint('Could not fetch pharmacy $id');
+            }
+          }
+        }
+      }
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -80,7 +102,10 @@ class OrdersProvider extends ChangeNotifier {
   }
 
   /// Créer une nouvelle commande
-  Future<void> createOrder(CreateOrderRequest request) async {
+  Future<void> createOrder(
+    CreateOrderRequest request, {
+    Function? onOrderCreated,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     _successMessage = null;
@@ -92,6 +117,10 @@ class OrdersProvider extends ChangeNotifier {
       _successMessage = 'Commande créée avec succès!';
       // Rafraîchir la liste des commandes
       await fetchMyOrders();
+      // Rafraîchir les notifications si callback fourni
+      if (onOrderCreated != null) {
+        onOrderCreated();
+      }
     } catch (e) {
       _errorMessage = e.toString();
       _currentOrder = null;
@@ -99,6 +128,11 @@ class OrdersProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Retourne le nom d'une pharmacie (cache) ou l'id si non disponible
+  String pharmacyNameFor(String pharmacyId) {
+    return _pharmacyCache[pharmacyId]?.name ?? pharmacyId;
   }
 
   /// Mettre à jour le statut d'une commande

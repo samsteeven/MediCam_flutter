@@ -107,7 +107,9 @@ class User {
   }
 
   static UserRole _parseRole(String? role) {
-    if (role == null || role.isEmpty) return UserRole.PATIENT;
+    if (role == null || role.isEmpty) {
+      throw ArgumentError('User role is missing or null');
+    }
 
     switch (role.toUpperCase()) {
       case 'ADMIN':
@@ -119,7 +121,7 @@ class User {
       case 'DELIVERY':
         return UserRole.DELIVERY;
       default:
-        return UserRole.PATIENT;
+        throw ArgumentError('Invalid user role: $role');
     }
   }
 

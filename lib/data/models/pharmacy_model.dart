@@ -96,7 +96,7 @@ class PharmacyMedicationInventory {
   final String medicationId;
   final String pharmacyId;
   final double price;
-  final int quantityInStock;
+  final int stockQuantity;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -105,10 +105,30 @@ class PharmacyMedicationInventory {
     required this.medicationId,
     required this.pharmacyId,
     required this.price,
-    required this.quantityInStock,
+    required this.stockQuantity,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  PharmacyMedicationInventory copyWith({
+    String? id,
+    String? medicationId,
+    String? pharmacyId,
+    int? stockQuantity,
+    double? price,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return PharmacyMedicationInventory(
+      id: id ?? this.id,
+      medicationId: medicationId ?? this.medicationId,
+      pharmacyId: pharmacyId ?? this.pharmacyId,
+      price: price ?? this.price,
+      stockQuantity: stockQuantity ?? this.stockQuantity,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   factory PharmacyMedicationInventory.fromJson(Map<String, dynamic> json) {
     return PharmacyMedicationInventory(
@@ -116,7 +136,13 @@ class PharmacyMedicationInventory {
       medicationId: json['medicationId'] as String? ?? '',
       pharmacyId: json['pharmacyId'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      quantityInStock: json['quantityInStock'] as int? ?? 0,
+      // Backend Java retourne stockQuantity
+      stockQuantity: _parseInventoryQuantityInStock(
+        json['stockQuantity'] ??
+            json['quantityInStock'] ??
+            json['stock'] ??
+            json['quantity'],
+      ),
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -134,9 +160,26 @@ class PharmacyMedicationInventory {
       'medicationId': medicationId,
       'pharmacyId': pharmacyId,
       'price': price,
-      'quantityInStock': quantityInStock,
+      'stockQuantity': stockQuantity,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  /// Conversion sûre du champ quantité en stock pour inventaire
+  /// Gère les types : int, double, String, null
+  static int _parseInventoryQuantityInStock(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (e) {
+        return 0;
+      }
+    }
+    // Type inconnu
+    return 0;
   }
 }

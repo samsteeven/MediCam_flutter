@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:easypharma_flutter/core/constants/api_constants.dart';
@@ -19,8 +20,8 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: url,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -358,13 +359,26 @@ class ApiService {
       case DioExceptionType.receiveTimeout:
         return Exception('La requête a expiré. Veuillez réessayer.');
       case DioExceptionType.badResponse:
-        return Exception('Erreur serveur (${error.response?.statusCode})');
+        final statusCode = error.response?.statusCode;
+        if (statusCode == 401) {
+          return Exception(
+            'Non autorisé (401). Si cela arrive lors de la connexion, vérifiez que votre Backend autorise l\'accès public à "/auth/login" (voir SecurityConfig).',
+          );
+        }
+        return Exception('Erreur serveur ($statusCode)');
       case DioExceptionType.cancel:
         return Exception('Requête annulée');
+      case DioExceptionType.connectionError:
+        if (kIsWeb) {
+          return Exception(
+            'Échec de connexion (CORS ?). Vérifiez que le Backend est lancé sur le port 8080 et accepte les connexions (CORS enabled).',
+          );
+        }
+        return Exception('Impossible de se connecter au serveur (Refused).');
       case DioExceptionType.unknown:
         return Exception('Erreur de connexion. Vérifiez votre internet.');
       default:
-        return Exception('Une erreur inattendue est survenue');
+        return Exception('Une erreur inattendue est survenue: ${error.type}');
     }
   }
 
@@ -378,7 +392,6 @@ class ApiService {
 
   // Check if user is authenticated
   Future<bool> isAuthenticated() async {
-    // MODIFIEZ cette ligne :
     final token = await _secureStorage.read(key: AppConstants.accessTokenKey);
     return token != null && token.isNotEmpty;
   }

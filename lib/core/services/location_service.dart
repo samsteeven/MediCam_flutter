@@ -23,18 +23,29 @@ class LocationService {
     }
 
     // 2. Vérifier les permissions
-    permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted &&
-          permissionGranted != PermissionStatus.grantedLimited) {
-        throw LocationPermissionDeniedException();
+    try {
+      permissionGranted = await _location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await _location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted &&
+            permissionGranted != PermissionStatus.grantedLimited) {
+          throw LocationPermissionDeniedException();
+        }
       }
-    }
 
-    // 3. Cas refusé définitivement
-    if (permissionGranted == PermissionStatus.deniedForever) {
-      throw LocationPermissionPermanentlyDeniedException();
+      if (permissionGranted == PermissionStatus.deniedForever) {
+        throw LocationPermissionPermanentlyDeniedException();
+      }
+    } catch (e) {
+      // Sur le web, 'hasPermission' peut échouer avec une erreur 'Permissions query'.
+      // Dans ce cas, on laisse getLocation() tenter sa chance, le navigateur gérera le prompt.
+      if (!e.toString().contains('LocationPermission')) {
+        print(
+          "Warning: Location permission check failed ($e). Proceeding to getLocation anyway.",
+        );
+      } else {
+        rethrow;
+      }
     }
 
     return await _location.getLocation();
