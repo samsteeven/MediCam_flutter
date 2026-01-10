@@ -46,6 +46,8 @@ class Medication {
   final String? genericName;
   final TherapeuticClass therapeuticClass;
   final String? description;
+  final double price;
+  final bool requiresPrescription;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -55,6 +57,8 @@ class Medication {
     this.genericName,
     required this.therapeuticClass,
     this.description,
+    this.price = 0.0,
+    this.requiresPrescription = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -68,6 +72,8 @@ class Medication {
           TherapeuticClass.fromString(json['therapeuticClass'] as String?) ??
           TherapeuticClass.AUTRES,
       description: json['description'] as String?,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      requiresPrescription: json['requiresPrescription'] as bool? ?? false,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -117,13 +123,18 @@ class PharmacyMedication {
       medicationId: json['medicationId'] as String? ?? '',
       pharmacyId: json['pharmacyId'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      quantityInStock: json['quantityInStock'] as int? ?? 0,
+      // Tenter plusieurs champs possibles pour le stock
+      quantityInStock:
+          (json['quantityInStock'] ?? json['stock'] ?? json['quantity'])
+              as int? ??
+          0,
       medication:
           json['medication'] != null
               ? Medication.fromJson(json['medication'] as Map<String, dynamic>)
               : Medication(
-                id: '',
-                name: '',
+                id: json['medicationId'] as String? ?? '',
+                // Essayer de récupérer le nom depuis le niveau supérieur si medication est null
+                name: json['medicationName'] as String? ?? 'Médicament inconnu',
                 therapeuticClass: TherapeuticClass.AUTRES,
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
@@ -132,8 +143,8 @@ class PharmacyMedication {
           json['pharmacy'] != null
               ? Pharmacy.fromJson(json['pharmacy'] as Map<String, dynamic>)
               : Pharmacy(
-                id: '',
-                name: '',
+                id: json['pharmacyId'] as String? ?? '',
+                name: json['pharmacyName'] as String? ?? 'Pharmacie inconnue',
                 address: '',
                 city: '',
                 phone: '',

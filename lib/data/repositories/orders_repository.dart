@@ -122,4 +122,22 @@ class OrdersRepository {
       data: {'latitude': lat, 'longitude': lon},
     );
   }
+
+  /// Récupérer les statistiques de revenus d'une pharmacie
+  /// GET /api/v1/orders/pharmacy-stats/{pharmacyId}
+  Future<Map<String, dynamic>> getPharmacyStats(String pharmacyId) async {
+    try {
+      final response = await _dio.get(ApiConstants.pharmacyStats(pharmacyId));
+      if (response.statusCode == 200) {
+        return response.data is Map
+            ? response.data
+            : response.data['data'] ?? {};
+      }
+      throw Exception(
+        'Erreur lors de la récupération des stats: ${response.statusCode}',
+      );
+    } on DioException catch (e) {
+      throw Exception('Erreur réseau: ${e.message}');
+    }
+  }
 }

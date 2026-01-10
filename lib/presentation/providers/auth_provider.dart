@@ -47,30 +47,51 @@ class AuthProvider with ChangeNotifier {
       final isAuthenticated = await _apiService.isAuthenticated();
 
       if (isAuthenticated) {
-        // Get token and fetch user profile
+        // Get token
         final token = await _apiService.getToken();
         if (token != null) {
           try {
+            // Try to fetch fresh user profile from API
             final userProfile = await _authRepository.getProfile(token);
             _user = userProfile;
+
+            // Save updated user data locally
+            await _apiService.saveLoginData(
+              accessToken: token,
+              refreshToken: await _apiService.getRefreshToken() ?? '',
+              userData: userProfile.toJson(),
+            );
           } catch (e) {
-            // If fetching profile fails, clear tokens (expired/invalid)
-            await _apiService.clearTokens();
-            _user = null;
+            print('Failed to fetch profile from API: $e');
+            // If API fails (e.g. offline), try to load from local storage
+            final localData = await _apiService.getUserData();
+            if (localData != null) {
+              _user = User.fromJson(localData);
+              print('Loaded user from local storage');
+            } else {
+              // If no local data, then we must clear everything
+              await _apiService.clearTokens();
+              _user = null;
+            }
           }
         }
       } else {
         // SI NON AUTHENTIFIÉ, NE PAS CHARGER L'UTILISATEUR !
-        // Clear any residual data
         _user = null;
         await _apiService.clearTokens();
       }
     } catch (e) {
       _error = e.toString();
       print('Error initializing auth: $e');
-      // En cas d'erreur, on part du principe que l'utilisateur n'est pas connecté
-      _user = null;
-      await _apiService.clearTokens();
+
+      // Try fallback to local data even if general error
+      final localData = await _apiService.getUserData();
+      if (localData != null) {
+        _user = User.fromJson(localData);
+      } else {
+        _user = null;
+        await _apiService.clearTokens();
+      }
     } finally {
       _isLoading = false;
       _isInitialized = true;
@@ -128,6 +149,7 @@ class AuthProvider with ChangeNotifier {
     required UserRole role,
     String? address,
     String? city,
+    String? pharmacyId,
   }) async {
     _isLoading = true;
     _error = null;
@@ -143,6 +165,7 @@ class AuthProvider with ChangeNotifier {
         role: role,
         address: address,
         city: city,
+        pharmacyId: pharmacyId,
       );
 
       // Save tokens and user data
@@ -360,6 +383,39 @@ class AuthProvider with ChangeNotifier {
       // Afficher un message d'erreur si context est fourni
 
       rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Delete user account
+  Future<void> deleteProfile() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _authRepository.deleteProfile();
+
+      // Clear local storage after successful deletion
+      await _apiService.clearTokens();
+      await _prefs.clear();
+
+      _user = null;
+      _error = null;
+    } catch (e) {
+      String errorMessage = e.toString();
+      // Check for backend data integrity violation (Foreign Key Constraint)
+      if (errorMessage.contains('DataIntegrityViolationException') ||
+          errorMessage.contains('constraint')) {
+        const friendlyMessage =
+            "Impossible de supprimer le compte car des données (historique, commandes) y sont liées. Veuillez contacter le support.";
+        _error = friendlyMessage;
+        throw Exception(friendlyMessage);
+      } else {
+        _error = errorMessage;
+        rethrow;
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

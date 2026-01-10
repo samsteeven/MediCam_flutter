@@ -42,7 +42,12 @@ class PharmaciesProvider extends ChangeNotifier {
       _allPharmacies = await _repository.getAllPharmacies();
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      if (e.toString().contains('401')) {
+        _errorMessage =
+            "Accès refusé : Le serveur demande d'être connecté pour voir les pharmacies.";
+      } else {
+        _errorMessage = e.toString();
+      }
       _allPharmacies = [];
     } finally {
       _isLoading = false;
