@@ -78,7 +78,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.patch(
-        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId/stock',
+        ApiConstants.updateStock(pharmacyId, medicationId),
         data: {'stockQuantity': stockQuantity},
       );
 
@@ -106,7 +106,7 @@ class PharmacyInventoryRepository {
   ) async {
     try {
       final response = await _dio.patch(
-        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId/price',
+        ApiConstants.updatePrice(pharmacyId, medicationId),
         data: {'price': price},
       );
 
@@ -130,7 +130,7 @@ class PharmacyInventoryRepository {
   Future<void> removeMedication(String pharmacyId, String medicationId) async {
     try {
       final response = await _dio.delete(
-        '${ApiConstants.pharmacyMedications(pharmacyId)}/$medicationId',
+        ApiConstants.removePharmacyMedication(pharmacyId, medicationId),
       );
 
       if (response.statusCode != 200 && response.statusCode != 204) {

@@ -2,9 +2,13 @@ import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart
 import 'package:easypharma_flutter/data/repositories/delivery_repository.dart';
 import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
+import 'dart:async';
 import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:easypharma_flutter/core/services/deeplink_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
@@ -34,9 +38,19 @@ import 'package:easypharma_flutter/presentation/screens/profile/profile_screen.d
 import 'package:easypharma_flutter/presentation/screens/profile/edit_profile_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/profile/notification_center_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/home/patient_home_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/orders/orders_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/orders/order_details_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/cart/cart_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/checkout/checkout_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/pharmacy/pharmacy_details_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/medication/medication_details_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/payments/payments_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables (optional .env for local testing)
+  await dotenv.load(fileName: '.env');
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -117,7 +131,30 @@ void main() async {
       child: const MyApp(),
     ),
   );
+
+  // Initialiser la gestion des deep links via MainActivity channels
+  try {
+    // Get initial link and navigate if present
+    DeeplinkService.getInitialLink().then((link) {
+      if (link != null) {
+        _handleIncomingLink(link);
+      }
+    });
+
+    // Listen to link stream while app is running
+    DeeplinkService.linkStream.listen((link) {
+      if (link != null) {
+        _handleIncomingLink(link);
+      }
+    });
+  } catch (_) {}
 }
+
+// Navigator key kept for programmatic navigation if needed
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+// ScaffoldMessenger key to show SnackBars from top-level handlers
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -127,6 +164,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'EasyPharma',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       theme: _buildTheme(),
       initialRoute: '/',
       routes: {
@@ -145,6 +184,23 @@ class MyApp extends StatelessWidget {
         '/delivery-home':
             (context) =>
                 _buildProtectedScreen(context, const DeliveryHomeScreen()),
+        '/orders':
+            (context) => _buildProtectedScreen(context, const OrdersScreen()),
+        '/orders/details':
+            (context) =>
+                _buildProtectedScreen(context, const OrderDetailsScreen()),
+        '/cart':
+            (context) => _buildProtectedScreen(context, const CartScreen()),
+        '/checkout':
+            (context) => _buildProtectedScreen(context, const CheckoutScreen()),
+        '/pharmacy':
+            (context) =>
+                _buildProtectedScreen(context, const PharmacyDetailsScreen()),
+        '/medication':
+            (context) =>
+                _buildProtectedScreen(context, const MedicationDetailsScreen()),
+        '/payments':
+            (context) => _buildProtectedScreen(context, const PaymentsScreen()),
         '/notifications':
             (context) => _buildProtectedScreen(
               context,
@@ -153,8 +209,14 @@ class MyApp extends StatelessWidget {
         '/forgot-password':
             (context) =>
                 _buildAuthScreen(context, const ForgotPasswordScreen()),
-        '/reset-password':
-            (context) => _buildAuthScreen(context, const ResetPasswordScreen()),
+        '/reset-password': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final token = args is String ? args : null;
+          return _buildAuthScreen(
+            context,
+            ResetPasswordScreen(resetToken: token),
+          );
+        },
       },
     );
   }
@@ -285,4 +347,25 @@ class MyApp extends StatelessWidget {
       fontFamily: 'Roboto',
     );
   }
+}
+
+void _handleIncomingLink(String link) {
+  try {
+    final uri = Uri.parse(link);
+    String? token = uri.queryParameters['token'];
+    if (token == null && uri.pathSegments.isNotEmpty) {
+      token = uri.pathSegments.last;
+    }
+
+    // Debug helper: show the test token on screen for quick verification
+    if (token != null && token == 'SUCCES_TEST_FINAL') {
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text('Deep link token reçu: $token')),
+      );
+    }
+
+    if (token != null && navigatorKey.currentState != null) {
+      navigatorKey.currentState!.pushNamed('/reset-password', arguments: token);
+    }
+  } catch (_) {}
 }

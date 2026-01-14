@@ -28,6 +28,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   intl: ^0.18.1
   url_launcher: ^6.2.1
+  # uni_links removed: using local platform channels in MainActivity instead
   image_picker: ^1.0.4
   geocoding: ^3.0.0
   path: ^1.8.3

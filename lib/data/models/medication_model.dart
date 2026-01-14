@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
 
 enum TherapeuticClass {
   ANTALGIQUE,
@@ -64,24 +64,47 @@ class Medication {
   });
 
   factory Medication.fromJson(Map<String, dynamic> json) {
+    String s(dynamic v) => v == null ? '' : v.toString();
+    double pd(dynamic v) {
+      if (v == null) return 0.0;
+      try {
+        return double.parse(v.toString());
+      } catch (_) {
+        return 0.0;
+      }
+    }
+
+    DateTime pdt(dynamic v) {
+      if (v == null) return DateTime.now();
+      try {
+        return DateTime.parse(v.toString());
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
+    bool pb(dynamic v) {
+      if (v == null) return false;
+      if (v is bool) return v;
+      final sVal = s(v).toLowerCase();
+      return sVal == 'true' || sVal == '1';
+    }
+
     return Medication(
-      id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      genericName: json['genericName'] as String?,
+      id: s(json['id'] ?? json['medicationId'] ?? json['medication_id']),
+      name: s(json['name'] ?? json['label'] ?? ''),
+      genericName:
+          json['genericName'] as String? ?? json['generic_name'] as String?,
       therapeuticClass:
           TherapeuticClass.fromString(json['therapeuticClass'] as String?) ??
           TherapeuticClass.AUTRES,
-      description: json['description'] as String?,
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      requiresPrescription: json['requiresPrescription'] as bool? ?? false,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : DateTime.now(),
+      description: json['description'] as String? ?? json['desc'] as String?,
+      price: pd(json['price'] ?? json['cost']),
+      requiresPrescription: pb(
+        json['requiresPrescription'] ?? json['requires_prescription'],
+      ),
+      createdAt: pdt(json['createdAt'] ?? json['created_at']),
+      updatedAt: pdt(json['updatedAt'] ?? json['updated_at']),
     );
   }
 
@@ -143,15 +166,55 @@ class PharmacyMedication {
               ),
       pharmacy:
           json['pharmacy'] != null
-              ? Pharmacy.fromJson(json['pharmacy'] as Map<String, dynamic>)
+              ? Pharmacy.fromJson({
+                ...(json['pharmacy'] as Map<String, dynamic>),
+                // Aggressively inject any rating found at the top level into the pharmacy object
+                if (json['averageRating'] != null)
+                  'averageRating': json['averageRating'],
+                if (json['avgRating'] != null)
+                  'averageRating': json['avgRating'],
+                if (json['pharmacyRating'] != null)
+                  'averageRating': json['pharmacyRating'],
+                if (json['rating'] != null) 'averageRating': json['rating'],
+                if (json['ratingCount'] != null)
+                  'ratingCount': json['ratingCount'],
+                if (json['pharmacyId'] != null) 'id': json['pharmacyId'],
+                if (json['pharmacyName'] != null) 'name': json['pharmacyName'],
+              })
               : Pharmacy(
-                id: json['pharmacyId'] as String? ?? '',
-                name: json['pharmacyName'] as String? ?? 'Pharmacie inconnue',
-                address: '',
-                city: '',
-                phone: '',
-                latitude: 0.0,
-                longitude: 0.0,
+                id:
+                    json['pharmacyId'] as String? ??
+                    json['pharmacy_id'] as String? ??
+                    '',
+                name:
+                    json['pharmacyName'] as String? ??
+                    json['pharmacy_name'] as String? ??
+                    'Pharmacie inconnue',
+                address:
+                    json['pharmacyAddress'] as String? ??
+                    json['pharmacy_address'] as String? ??
+                    '',
+                city:
+                    json['pharmacyCity'] as String? ??
+                    json['pharmacy_city'] as String? ??
+                    '',
+                phone:
+                    json['pharmacyPhone'] as String? ??
+                    json['pharmacy_phone'] as String? ??
+                    '',
+                latitude: (json['pharmacyLatitude'] as num?)?.toDouble() ?? 0.0,
+                longitude:
+                    (json['pharmacyLongitude'] as num?)?.toDouble() ?? 0.0,
+                averageRating:
+                    (json['pharmacyRating'] as num?)?.toDouble() ??
+                    (json['averageRating'] as num?)?.toDouble() ??
+                    (json['rating'] as num?)?.toDouble() ??
+                    (json['avgRating'] as num?)?.toDouble() ??
+                    0.0,
+                ratingCount:
+                    (json['pharmacyRatingCount'] as num?)?.toInt() ??
+                    (json['ratingCount'] as num?)?.toInt() ??
+                    0,
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
               ),
@@ -185,82 +248,5 @@ class PharmacyMedication {
     }
     // Type inconnu
     return 0;
-  }
-}
-
-class Pharmacy {
-  final String id;
-  final String name;
-  final String address;
-  final String city;
-  final String phone;
-  final double latitude;
-  final double longitude;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  Pharmacy({
-    required this.id,
-    required this.name,
-    required this.address,
-    required this.city,
-    required this.phone,
-    required this.latitude,
-    required this.longitude,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Pharmacy.fromJson(Map<String, dynamic> json) {
-    return Pharmacy(
-      id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      address: json['address'] as String? ?? '',
-      city: json['city'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'address': address,
-      'city': city,
-      'phone': phone,
-      'latitude': latitude,
-      'longitude': longitude,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-
-  double calculateDistance(double myLatitude, double myLongitude) {
-    // Formule de Haversine pour calculer la distance en km
-    const earthRadius = 6371; // km
-    final dLat = _degreesToRadians(latitude - myLatitude);
-    final dLon = _degreesToRadians(longitude - myLongitude);
-    final a =
-        (math.sin(dLat / 2) * math.sin(dLat / 2)) +
-        (math.cos(_degreesToRadians(myLatitude)) *
-            math.cos(_degreesToRadians(latitude)) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2));
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return earthRadius * c;
-  }
-
-  double _degreesToRadians(double degrees) {
-    return degrees * (math.pi / 180);
   }
 }

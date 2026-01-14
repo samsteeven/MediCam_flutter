@@ -1,5 +1,11 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
   static String get baseUrl {
+    // Prefer value from .env during development (e.g. http://localhost:3000)
+    final envUrl = dotenv.env['API_BASE_URL'];
+    if (envUrl != null && envUrl.isNotEmpty) return envUrl;
+
     return "https://unconvoluted-prepreference-jeraldine.ngrok-free.dev/api/v1";
   }
 
@@ -24,6 +30,8 @@ class ApiConstants {
   static const String deleteProfile = '/users/me';
   static const String updatePassword = '/users/me/password';
   static const String myPharmacyUsers = '/users/my-pharmacy';
+  static String userById(String id) => '/users/$id';
+  static String userRole(String id) => '/users/$id/role';
 
   // === PHARMACIES ===
   static const String pharmacies = '/pharmacies';
@@ -33,10 +41,18 @@ class ApiConstants {
   static const String searchPharmaciesByStatus = '/pharmacies/search/by-status';
   static const String approvedPharmaciesByCity = '/pharmacies/approved/by-city';
   static const String pharmaciesByLicense = '/pharmacies/by-license';
+  static String pharmacyByLicense(String license) =>
+      '$pharmaciesByLicense/$license';
+  static String pharmacyById(String id) => '/pharmacies/$id';
+  static String pharmacyStatus(String id) => '/pharmacies/$id/status';
 
   // === EMPLOYEES ===
   static String pharmacyEmployees(String pharmacyId) =>
       '/pharmacies/$pharmacyId/employees';
+  static String pharmacyEmployeesByRole(String pharmacyId, String role) =>
+      '/pharmacies/$pharmacyId/employees/role/$role';
+  static String removePharmacyEmployee(String phId, String empId) =>
+      '/pharmacies/$phId/employees/$empId';
 
   // === INVENTORY ===
   static String pharmacyMedications(String pharmacyId) =>
@@ -45,11 +61,16 @@ class ApiConstants {
       '/pharmacies/$pharmacyId/medications/$medicationId/stock';
   static String updatePrice(String pharmacyId, String medicationId) =>
       '/pharmacies/$pharmacyId/medications/$medicationId/price';
+  static String removePharmacyMedication(
+    String pharmacyId,
+    String medicationId,
+  ) => '/pharmacies/$pharmacyId/medications/$medicationId';
 
   // === MEDICATIONS ===
   static const String medications = '/medications';
   static const String searchMedications = '/medications/search';
   static const String filterMedications = '/medications/filter';
+  static String medicationById(String id) => '/medications/$id';
   static String medicationsByClass(String therapeuticClass) =>
       '/medications/by-class/$therapeuticClass';
   static const String prescriptionRequired =
@@ -65,6 +86,8 @@ class ApiConstants {
       '/orders/pharmacy-orders/$pharmacyId';
   static String pharmacyStats(String pharmacyId) =>
       '/orders/pharmacy-stats/$pharmacyId';
+  static String orderById(String id) => '/orders/$id';
+  static String orderStatus(String id) => '/orders/$id/status';
 
   // === DELIVERIES ===
   static const String myDeliveryStats = '/deliveries/my-stats';
@@ -100,6 +123,7 @@ class ApiConstants {
   static const String reviews = '/reviews';
   static String pharmacyReviews(String pharmacyId) =>
       '/reviews/pharmacy/$pharmacyId';
+  static String reviewById(String id) => '/reviews/$id';
   static String moderateReview(String id) => '/reviews/$id/status';
 
   // === PRESCRIPTIONS ===
@@ -110,6 +134,11 @@ class ApiConstants {
   static const String payouts = '/payouts';
   static String pharmacyPayouts(String pharmacyId) =>
       '/payouts/pharmacy/$pharmacyId';
+
+  // === FILES ===
+  static const String fileUpload = '/files/upload';
+  static String fileUrl(String subdirectory, String filename) =>
+      '/files/$subdirectory/$filename';
 }
 
 class ApiHeaders {

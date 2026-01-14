@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
+
 import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
 import 'package:easypharma_flutter/presentation/providers/medication_provider.dart';
 import 'package:easypharma_flutter/core/constants/api_constants.dart';

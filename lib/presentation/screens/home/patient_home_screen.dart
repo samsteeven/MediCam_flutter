@@ -280,113 +280,186 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/pharmacy',
+                      arguments: {
+                        'pharmacyId': pm.pharmacy.id,
+                        'name': pm.pharmacy.name,
+                      },
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.medication,
+                            color: Colors.blue.shade700,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.medication,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              med.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            Text(
-                              med.description ?? '',
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 12,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  '${pm.price} FCFA',
-                                  style: TextStyle(
-                                    color: Colors.blue.shade700,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                med.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_pharmacy_outlined,
+                                    size: 14,
+                                    color: Colors.blue.shade700,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isOutOfStock
-                                            ? Colors.red.shade50
-                                            : Colors.green.shade50,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    isOutOfStock
-                                        ? 'Rupture'
-                                        : 'Stock: ${pm.stockQuantity}',
-                                    style: TextStyle(
-                                      color:
-                                          isOutOfStock
-                                              ? Colors.red
-                                              : Colors.green,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      pm.pharmacy.name,
+                                      style: TextStyle(
+                                        color: Colors.blue.shade800,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  if (pm.pharmacy.averageRating > 0)
+                                    Row(
+                                      children: [
+                                        ...List.generate(5, (index) {
+                                          double starRating = index + 1.0;
+                                          IconData icon;
+                                          if (pm.pharmacy.averageRating >=
+                                              starRating) {
+                                            icon = Icons.star;
+                                          } else if (pm
+                                                  .pharmacy
+                                                  .averageRating >=
+                                              starRating - 0.5) {
+                                            icon = Icons.star_half;
+                                          } else {
+                                            icon = Icons.star_border;
+                                          }
+                                          return Icon(
+                                            icon,
+                                            color: Colors.amber,
+                                            size: 14,
+                                          );
+                                        }),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          pm.pharmacy.averageRating
+                                              .toStringAsFixed(1),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                med.description ?? '',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
                                 ),
-                              ],
-                            ),
-                          ],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${pm.price} FCFA',
+                                    style: TextStyle(
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isOutOfStock
+                                              ? Colors.red.shade50
+                                              : Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      isOutOfStock
+                                          ? 'Rupture'
+                                          : 'Stock: ${pm.stockQuantity}',
+                                      style: TextStyle(
+                                        color:
+                                            isOutOfStock
+                                                ? Colors.red
+                                                : Colors.green,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(
-                          Icons.add_shopping_cart,
-                          color:
-                              isOutOfStock ? Colors.grey : Colors.blue.shade700,
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            Icons.add_shopping_cart,
+                            color:
+                                isOutOfStock
+                                    ? Colors.grey
+                                    : Colors.blue.shade700,
+                          ),
+                          onPressed:
+                              isOutOfStock
+                                  ? null
+                                  : () {
+                                    context.read<CartProvider>().addItem(
+                                      med,
+                                      pm.pharmacy,
+                                      pm.price,
+                                    );
+                                    NotificationHelper.showSuccess(
+                                      context,
+                                      '${med.name} ajouté au panier',
+                                      onTap: () {
+                                        context
+                                            .read<NavigationProvider>()
+                                            .setIndex(2);
+                                      },
+                                    );
+                                  },
                         ),
-                        onPressed:
-                            isOutOfStock
-                                ? null
-                                : () {
-                                  context.read<CartProvider>().addItem(
-                                    med,
-                                    pm.pharmacy,
-                                    pm.price,
-                                  );
-                                  NotificationHelper.showSuccess(
-                                    context,
-                                    '${med.name} ajouté au panier',
-                                    onTap: () {
-                                      context
-                                          .read<NavigationProvider>()
-                                          .setIndex(2);
-                                    },
-                                  );
-                                },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -464,26 +537,30 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         // === STATISTIQUES ===
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.shopping_bag_outlined,
-                  title: 'Commandes',
-                  value: '0',
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.favorite_outline,
-                  title: 'Favoris',
-                  value: '0',
-                  color: Colors.red,
-                ),
-              ),
-            ],
+          child: Consumer<OrdersProvider>(
+            builder: (context, ordersProvider, _) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'Commandes',
+                      value: ordersProvider.myOrders.length.toString(),
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.favorite_outline,
+                      title: 'Favoris',
+                      value: '0',
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -900,6 +977,53 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                     fontSize: 13,
                                   ),
                                 ),
+                                if (item.pharmacy.averageRating > 0)
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          ...List.generate(5, (index) {
+                                            double starRating = index + 1.0;
+                                            IconData icon;
+                                            if (item.pharmacy.averageRating >=
+                                                starRating) {
+                                              icon = Icons.star;
+                                            } else if (item
+                                                    .pharmacy
+                                                    .averageRating >=
+                                                starRating - 0.5) {
+                                              icon = Icons.star_half;
+                                            } else {
+                                              icon = Icons.star_border;
+                                            }
+                                            return Icon(
+                                              icon,
+                                              color: Colors.amber,
+                                              size: 16,
+                                            );
+                                          }),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            item.pharmacy.averageRating
+                                                .toStringAsFixed(1),
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        '${item.pharmacy.ratingCount} avis',
+                                        style: TextStyle(
+                                          color: Colors.blue.shade700,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '${item.price} FCFA / unité',
@@ -1314,6 +1438,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                       controller: commentController,
                       decoration: const InputDecoration(
                         hintText: 'Votre commentaire...',
+                        hintStyle: TextStyle(color: Colors.grey),
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
@@ -1326,12 +1451,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     child: const Text('Annuler'),
                   ),
                   ElevatedButton(
+                    style: ButtonStyle(
+                      fixedSize: MaterialStateProperty.all(const Size(90, 40)),
+                    ),
                     onPressed: () async {
                       try {
                         await context.read<ReviewProvider>().submitReview(
                           pharmacyId: order.pharmacyId,
                           rating: selectedRating,
                           comment: commentController.text,
+                          orderId: order.id,
                         );
                         Navigator.pop(context);
                         NotificationHelper.showSuccess(
@@ -1573,7 +1702,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   ),
                 ],
               ),
-              if (order.status == OrderStatus.COMPLETED) ...[
+              if (order.status == OrderStatus.DELIVERED) ...[
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -1597,11 +1726,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         return Colors.orange.shade700;
       case OrderStatus.CONFIRMED:
         return Colors.blue.shade700;
-      case OrderStatus.PREPARED:
+      case OrderStatus.PREPARING:
         return Colors.purple.shade700;
-      case OrderStatus.READY_FOR_PICKUP:
+      case OrderStatus.READY:
         return Colors.green.shade700;
-      case OrderStatus.COMPLETED:
+      case OrderStatus.DELIVERED:
+        return Colors.teal.shade700;
+      case OrderStatus.PAID:
+        return Colors.lightBlue.shade700;
+      case OrderStatus.IN_DELIVERY:
         return Colors.teal.shade700;
       case OrderStatus.CANCELLED:
         return Colors.red.shade700;

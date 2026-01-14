@@ -1,34 +1,63 @@
 enum OrderStatus {
   PENDING,
+  PAID,
   CONFIRMED,
-  PREPARED,
-  READY_FOR_PICKUP,
-  COMPLETED,
+  PREPARING,
+  READY,
+  IN_DELIVERY,
+  DELIVERED,
   CANCELLED;
 
   String get displayName {
     switch (this) {
       case OrderStatus.PENDING:
         return 'En attente';
+      case OrderStatus.PAID:
+        return 'Payée';
       case OrderStatus.CONFIRMED:
         return 'Confirmée';
-      case OrderStatus.PREPARED:
+      case OrderStatus.PREPARING:
         return 'En préparation';
-      case OrderStatus.READY_FOR_PICKUP:
-        return 'Prête à récupérer';
-      case OrderStatus.COMPLETED:
-        return 'Complétée';
+      case OrderStatus.READY:
+        return 'Prête';
+      case OrderStatus.IN_DELIVERY:
+        return 'En livraison';
+      case OrderStatus.DELIVERED:
+        return 'Livrée';
       case OrderStatus.CANCELLED:
         return 'Annulée';
     }
   }
 
-  static OrderStatus? fromString(String? value) {
-    if (value == null) return null;
-    return OrderStatus.values.firstWhere(
-      (e) => e.toString().split('.').last == value,
-      orElse: () => OrderStatus.PENDING,
-    );
+  static OrderStatus fromString(String? value) {
+    if (value == null) return OrderStatus.PENDING;
+    final s = value.toString().toUpperCase().replaceAll('-', '_');
+    switch (s) {
+      case 'PENDING':
+        return OrderStatus.PENDING;
+      case 'PAID':
+      case 'PAYED':
+        return OrderStatus.PAID;
+      case 'CONFIRMED':
+      case 'CONFIRME':
+        return OrderStatus.CONFIRMED;
+      case 'PREPARING':
+      case 'PREPARATION':
+        return OrderStatus.PREPARING;
+      case 'READY':
+      case 'READY_FOR_PICKUP':
+        return OrderStatus.READY;
+      case 'IN_DELIVERY':
+      case 'DELIVERING':
+        return OrderStatus.IN_DELIVERY;
+      case 'DELIVERED':
+        return OrderStatus.DELIVERED;
+      case 'CANCELLED':
+      case 'CANCELED':
+        return OrderStatus.CANCELLED;
+      default:
+        return OrderStatus.PENDING;
+    }
   }
 }
 
@@ -90,10 +119,35 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    // helpers
+    String safeString(dynamic v) {
+      if (v == null) return '';
+      return v.toString();
+    }
+
+    DateTime parseDate(dynamic v) {
+      if (v == null) return DateTime.now();
+      try {
+        return DateTime.parse(v.toString());
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
+    double parseDouble(dynamic v) {
+      if (v == null) return 0.0;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString()) ?? 0.0;
+    }
+
     return Order(
-      id: json['id'] as String? ?? '',
-      patientId: json['patientId'] as String? ?? '',
-      pharmacyId: json['pharmacyId'] as String? ?? '',
+      id: safeString(json['id'] ?? json['orderId'] ?? json['order_id']),
+      patientId: safeString(
+        json['patientId'] ?? json['patient_id'] ?? json['patient'],
+      ),
+      pharmacyId: safeString(
+        json['pharmacyId'] ?? json['pharmacy_id'] ?? json['pharmacy'],
+      ),
       status:
           OrderStatus.fromString(json['status'] as String?) ??
           OrderStatus.PENDING,
@@ -102,15 +156,15 @@ class Order {
               ?.map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
-      totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now(),
-      updatedAt:
-          json['updatedAt'] != null
-              ? DateTime.parse(json['updatedAt'] as String)
-              : DateTime.now(),
+      totalAmount: parseDouble(
+        json['totalAmount'] ?? json['total_amount'] ?? json['amount'],
+      ),
+      createdAt: parseDate(
+        json['createdAt'] ?? json['created_at'] ?? json['created'],
+      ),
+      updatedAt: parseDate(
+        json['updatedAt'] ?? json['updated_at'] ?? json['updated'],
+      ),
     );
   }
 

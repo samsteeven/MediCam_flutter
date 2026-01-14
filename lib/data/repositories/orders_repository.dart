@@ -11,7 +11,7 @@ class OrdersRepository {
   /// GET /api/v1/orders/{id}
   Future<Order> getOrderDetails(String orderId) async {
     try {
-      final response = await _dio.get('${ApiConstants.orders}/$orderId');
+      final response = await _dio.get(ApiConstants.orderById(orderId));
 
       if (response.statusCode == 200) {
         final data =
@@ -95,7 +95,7 @@ class OrdersRepository {
   Future<Order> updateOrderStatus(String orderId, String newStatus) async {
     try {
       final response = await _dio.patch(
-        '${ApiConstants.orders}/$orderId/status',
+        ApiConstants.orderStatus(orderId),
         data: {'status': newStatus},
       );
 

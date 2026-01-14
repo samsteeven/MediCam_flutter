@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 enum PharmacyStatus {
   PENDING,
   APPROVED,
@@ -33,6 +35,8 @@ class Pharmacy {
   final double longitude;
   final String? licenseNumber;
   final PharmacyStatus status;
+  final double averageRating;
+  final int ratingCount;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -46,6 +50,8 @@ class Pharmacy {
     required this.longitude,
     this.licenseNumber,
     this.status = PharmacyStatus.PENDING,
+    this.averageRating = 0.0,
+    this.ratingCount = 0,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -63,6 +69,24 @@ class Pharmacy {
       status:
           PharmacyStatus.fromString(json['status'] as String?) ??
           PharmacyStatus.PENDING,
+      averageRating:
+          (json['averageRating'] as num?)?.toDouble() ??
+          (json['average_rating'] as num?)?.toDouble() ??
+          (json['avgRating'] as num?)?.toDouble() ??
+          (json['avg_rating'] as num?)?.toDouble() ??
+          (json['pharmacyRating'] as num?)?.toDouble() ??
+          (json['pharmacy_rating'] as num?)?.toDouble() ??
+          (json['pharmacy_average_rating'] as num?)?.toDouble() ??
+          (json['rating'] as num?)?.toDouble() ??
+          (json['rate'] as num?)?.toDouble() ??
+          (json['average_rate'] as num?)?.toDouble() ??
+          (json['average_score'] as num?)?.toDouble() ??
+          0.0,
+      ratingCount:
+          (json['ratingCount'] as num?)?.toInt() ??
+          (json['rating_count'] as num?)?.toInt() ??
+          (json['pharmacyRatingCount'] as num?)?.toInt() ??
+          0,
       createdAt:
           json['createdAt'] != null
               ? DateTime.parse(json['createdAt'] as String)
@@ -85,9 +109,30 @@ class Pharmacy {
       'longitude': longitude,
       'licenseNumber': licenseNumber,
       'status': status.toString().split('.').last,
+      'averageRating': averageRating,
+      'ratingCount': ratingCount,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  double calculateDistance(double myLatitude, double myLongitude) {
+    // Formule de Haversine pour calculer la distance en km
+    const earthRadius = 6371; // km
+    final dLat = _degreesToRadians(latitude - myLatitude);
+    final dLon = _degreesToRadians(longitude - myLongitude);
+    final a =
+        (math.sin(dLat / 2) * math.sin(dLat / 2)) +
+        (math.cos(_degreesToRadians(myLatitude)) *
+            math.cos(_degreesToRadians(latitude)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2));
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * (math.pi / 180);
   }
 }
 

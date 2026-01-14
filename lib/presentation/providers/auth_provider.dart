@@ -439,12 +439,8 @@ class AuthProvider with ChangeNotifier {
     switch (_user!.role) {
       case UserRole.PATIENT:
         return '/patient-home';
-      case UserRole.PHARMACIST:
-        return '/pharmacist-home';
       case UserRole.DELIVERY:
         return '/delivery-home';
-      case UserRole.ADMIN:
-        return '/admin-home';
       default:
         return '/profile';
     }

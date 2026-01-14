@@ -18,17 +18,38 @@ class NotificationDTO {
   });
 
   factory NotificationDTO.fromJson(Map<String, dynamic> json) {
+    String safeString(dynamic v) => v == null ? '' : v.toString();
+    DateTime parseDate(dynamic v) {
+      if (v == null) return DateTime.now();
+      try {
+        return DateTime.parse(v.toString());
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
+    String s(dynamic v) => v == null ? '' : v.toString();
+    DateTime pd(dynamic v) {
+      if (v == null) return DateTime.now();
+      try {
+        return DateTime.parse(v.toString());
+      } catch (_) {
+        return DateTime.now();
+      }
+    }
+
     return NotificationDTO(
-      id: json['id'] as String? ?? '',
-      title: json['title'] as String? ?? '',
-      message: json['message'] as String? ?? '',
-      createdAt:
-          json['createdAt'] != null
-              ? DateTime.parse(json['createdAt'] as String)
-              : DateTime.now(),
-      isRead: json['isRead'] as bool? ?? false,
-      type: json['type'] as String?,
-      referenceId: json['referenceId'] as String?,
+      id: s(json['id'] ?? json['notificationId'] ?? json['notification_id']),
+      title: s(json['title'] ?? json['subject']),
+      message: s(json['message'] ?? json['body'] ?? json['content']),
+      createdAt: pd(
+        json['createdAt'] ?? json['created_at'] ?? json['timestamp'],
+      ),
+      isRead: (json['isRead'] ?? json['read'] ?? false) == true,
+      type: (json['type'] ?? json['notificationType']) as String?,
+      referenceId:
+          (json['referenceId'] ?? json['reference_id'] ?? json['orderId'])
+              as String?,
     );
   }
 

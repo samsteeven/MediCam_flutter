@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/core/constants/api_constants.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
 
 class MedicationRepository {
   final Dio _dio;

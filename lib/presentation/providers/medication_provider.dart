@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
+
 import 'package:easypharma_flutter/data/repositories/medication_repository.dart';
 
 class MedicationProvider extends ChangeNotifier {
@@ -10,6 +12,7 @@ class MedicationProvider extends ChangeNotifier {
   List<Medication> _catalogResults = [];
   List<PharmacyMedication> _priceResults = [];
   List<Pharmacy> _nearbyPharmacies = [];
+  List<PharmacyMedication> _pharmacyInventory = [];
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -28,6 +31,7 @@ class MedicationProvider extends ChangeNotifier {
   List<Medication> get catalogResults => _catalogResults;
   List<PharmacyMedication> get priceResults => _priceResults;
   List<Pharmacy> get nearbyPharmacies => _nearbyPharmacies;
+  List<PharmacyMedication> get pharmacyInventory => _pharmacyInventory;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -215,6 +219,29 @@ class MedicationProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
       _catalogResults = [];
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Charger l'inventaire complet d'une pharmacie spécifique
+  Future<void> fetchPharmacyInventory(String pharmacyId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _pharmacyInventory = [];
+    notifyListeners();
+
+    try {
+      final results = await _repository.getPharmacyMedications(
+        pharmacyId: pharmacyId,
+      );
+      _pharmacyInventory = results;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _pharmacyInventory = [];
       notifyListeners();
     } finally {
       _isLoading = false;

@@ -32,7 +32,7 @@ class PharmaciesRepository {
   /// GET /api/v1/pharmacies/{id}
   Future<Pharmacy> getPharmacyById(String pharmacyId) async {
     try {
-      final response = await _dio.get('${ApiConstants.pharmacies}/$pharmacyId');
+      final response = await _dio.get(ApiConstants.pharmacyById(pharmacyId));
 
       if (response.statusCode == 200) {
         final data =
@@ -52,7 +52,7 @@ class PharmaciesRepository {
   Future<Pharmacy> getPharmacyByLicense(String licenseNumber) async {
     try {
       final response = await _dio.get(
-        '${ApiConstants.pharmaciesByLicense}/$licenseNumber',
+        ApiConstants.pharmacyByLicense(licenseNumber),
       );
 
       if (response.statusCode == 200) {
@@ -213,7 +213,7 @@ class PharmaciesRepository {
   ) async {
     try {
       final response = await _dio.put(
-        '${ApiConstants.pharmacies}/$pharmacyId',
+        ApiConstants.pharmacyById(pharmacyId),
         data: data,
       );
 
@@ -233,7 +233,7 @@ class PharmaciesRepository {
   Future<Pharmacy> changeStatus(String pharmacyId, String newStatus) async {
     try {
       final response = await _dio.patch(
-        '${ApiConstants.pharmacies}/$pharmacyId/status',
+        ApiConstants.pharmacyStatus(pharmacyId),
         data: {'status': newStatus},
       );
 
@@ -254,9 +254,7 @@ class PharmaciesRepository {
   /// DELETE /api/v1/pharmacies/{id}
   Future<void> deletePharmacy(String pharmacyId) async {
     try {
-      final response = await _dio.delete(
-        '${ApiConstants.pharmacies}/$pharmacyId',
-      );
+      final response = await _dio.delete(ApiConstants.pharmacyById(pharmacyId));
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception(

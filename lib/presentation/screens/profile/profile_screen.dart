@@ -192,17 +192,10 @@ Widget _buildBody(AuthProvider authProvider, User? user) {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black, // Secondary Black
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildStatusRow(
-                    icon: Icons.verified_user_outlined,
-                    label: 'Vérification',
-                    isActive: user.isVerified,
-                    status: user.isVerified ? 'Vérifié' : 'Non vérifié',
-                  ),
-                  const SizedBox(height: 12),
                   _buildStatusRow(
                     icon: Icons.check_circle_outline,
                     label: 'Activité',
@@ -627,7 +620,7 @@ Widget _buildBody(AuthProvider authProvider, User? user) {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Colors.black, // Secondary Black
+                color: Colors.black87, // Secondary Black
               ),
             ),
             const SizedBox(height: 16),
