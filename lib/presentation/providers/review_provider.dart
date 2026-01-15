@@ -53,9 +53,11 @@ class ReviewProvider extends ChangeNotifier {
       if (orderId != null && orderId.isNotEmpty) payload['orderId'] = orderId;
 
       await _repository.submitReview(payload);
-      // After submitting, newly created reviews may have status PENDING.
-      // Refresh the list asking for PENDING to surface the new item immediately.
-      await fetchPharmacyReviews(pharmacyId, status: 'PENDING');
+
+      // Refresh approved reviews so the user sees everyone else's feedback.
+      // Newly created review will be PENDING, so it might not show up
+      // in the APPROVED list immediately unless moderated.
+      await fetchPharmacyReviews(pharmacyId, status: 'APPROVED');
     } catch (e) {
       _errorMessage = e.toString();
       rethrow;

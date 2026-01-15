@@ -2,13 +2,10 @@ import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart
 import 'package:easypharma_flutter/data/repositories/delivery_repository.dart';
 import 'package:easypharma_flutter/presentation/screens/home/delivery_home_screen.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
-import 'dart:async';
 import 'package:easypharma_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/auth/reset_password_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:easypharma_flutter/core/services/deeplink_service.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
@@ -48,9 +45,6 @@ import 'package:easypharma_flutter/presentation/screens/payments/payments_screen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Load environment variables (optional .env for local testing)
-  await dotenv.load(fileName: '.env');
 
   final sharedPreferences = await SharedPreferences.getInstance();
 

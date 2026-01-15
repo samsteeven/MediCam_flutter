@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
@@ -5,6 +6,7 @@ import 'package:easypharma_flutter/presentation/providers/navigation_provider.da
 import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/delivery/widgets/delivery_card.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class DeliveryHomeScreen extends StatefulWidget {
   const DeliveryHomeScreen({super.key});
@@ -15,18 +17,45 @@ class DeliveryHomeScreen extends StatefulWidget {
 }
 
 class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
+  StreamSubscription? _notificationSubscription;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<DeliveryProvider>();
-      provider.fetchStats();
-      provider.fetchOngoingDeliveries();
-      provider.fetchAllDeliveries();
+      final deliveryProvider = context.read<DeliveryProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+      final auth = context.read<AuthProvider>();
+
+      deliveryProvider.fetchStats();
+      deliveryProvider.fetchOngoingDeliveries();
+      deliveryProvider.fetchAllDeliveries();
+
+      // Ensure notifications are initialized for this user
+      notificationProvider.initialize(userId: auth.user?.id);
+
+      _setupNotificationListener();
     });
   }
 
   @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupNotificationListener() {
+    _notificationSubscription = context
+        .read<NotificationProvider>()
+        .alertStream
+        .listen((message) {
+          if (mounted) {
+            NotificationHelper.showInfo(context, message);
+            setState(() {});
+          }
+        });
+  }
+
   Widget build(BuildContext context) {
     return Consumer<NavigationProvider>(
       builder: (context, navProvider, _) {
@@ -199,7 +228,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Text(
-                      'Bienvenue, M. ',
+                      'Bonjour, ',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
@@ -209,7 +238,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                     Consumer<AuthProvider>(
                       builder:
                           (context, authProvider, _) => Text(
-                            authProvider.user?.lastName ?? 'Livreur',
+                            authProvider.user?.firstName ?? 'Livreur',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -452,7 +481,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     );
   }
 
-  static Widget _buildInfoCard() {
+  Widget _buildInfoCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -501,7 +530,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     );
   }
 
-  static Widget _buildStatCard({
+  Widget _buildStatCard({
     required IconData icon,
     required String title,
     required String value,
@@ -557,7 +586,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     );
   }
 
-  static Widget _buildShortcutCard({
+  Widget _buildShortcutCard({
     required IconData icon,
     required String title,
     required MaterialColor color,

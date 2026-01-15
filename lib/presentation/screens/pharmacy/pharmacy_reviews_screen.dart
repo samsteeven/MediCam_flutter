@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/review_provider.dart';
 import 'package:easypharma_flutter/core/utils/notification_helper.dart';
-import 'package:easypharma_flutter/data/models/review_model.dart';
 
 class PharmacyReviewsScreen extends StatefulWidget {
   final String pharmacyId;
@@ -25,7 +24,10 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         // Default to showing approved reviews on open
-        context.read<ReviewProvider>().fetchPharmacyReviews(widget.pharmacyId);
+        context.read<ReviewProvider>().fetchPharmacyReviews(
+          widget.pharmacyId,
+          status: 'APPROVED',
+        );
       } catch (e) {
         debugPrint('Error fetching pharmacy reviews: $e');
       }

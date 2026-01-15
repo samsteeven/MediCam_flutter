@@ -1,11 +1,5 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class ApiConstants {
   static String get baseUrl {
-    // Prefer value from .env during development (e.g. http://localhost:3000)
-    final envUrl = dotenv.env['API_BASE_URL'];
-    if (envUrl != null && envUrl.isNotEmpty) return envUrl;
-
     return "https://unconvoluted-prepreference-jeraldine.ngrok-free.dev/api/v1";
   }
 

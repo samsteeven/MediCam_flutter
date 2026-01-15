@@ -56,7 +56,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       pharmaciesProvider.fetchAllPharmacies();
 
       // Notifications : initialise et démarre le polling (attendre le fetch initial)
-      await notificationProvider.initialize();
+      final auth = context.read<AuthProvider>();
+      await notificationProvider.initialize(userId: auth.user?.id);
 
       // Prescriptions de l'utilisateur
       prescriptionProvider.fetchMyPrescriptions();
@@ -82,8 +83,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     _notificationSubscription = context
         .read<NotificationProvider>()
         .alertStream
-        .listen((_) {
+        .listen((message) {
           if (mounted) {
+            NotificationHelper.showInfo(context, message);
             setState(() {});
           }
         });
@@ -500,7 +502,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               Row(
                 children: [
                   const Text(
-                    'Bienvenue, M. ',
+                    'Bonjour, ',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -510,7 +512,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   Consumer<AuthProvider>(
                     builder:
                         (context, authProvider, _) => Text(
-                          authProvider.user?.lastName ?? 'Utilisateur',
+                          authProvider.user?.firstName ?? 'Patient',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -1452,7 +1454,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   ),
                   ElevatedButton(
                     style: ButtonStyle(
-                      fixedSize: MaterialStateProperty.all(const Size(90, 40)),
+                      fixedSize: WidgetStateProperty.all(const Size(100, 50)),
                     ),
                     onPressed: () async {
                       try {

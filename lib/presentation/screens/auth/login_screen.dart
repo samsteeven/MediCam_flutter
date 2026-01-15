@@ -40,21 +40,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Initialize notifications after successful login and ensure welcome
       if (mounted) {
-        final notifProvider = context.read<NotificationProvider>();
-        await notifProvider.initialize();
-
-        // If no welcome notification exists yet, inject one locally.
         final auth = Provider.of<AuthProvider>(context, listen: false);
+        final notifProvider = context.read<NotificationProvider>();
+        await notifProvider.initialize(userId: auth.user?.id);
+
         final hasWelcome = notifProvider.notifications.any(
           (n) => n.type == 'WELCOME',
         );
         if (!hasWelcome) {
-          final roleName = auth.user?.role.name.toLowerCase() ?? 'patient';
           notifProvider.addLocalNotification(
             NotificationDTO(
               id: DateTime.now().millisecondsSinceEpoch.toString(),
-              title: 'Bienvenue',
-              message: 'Bienvenue sur EasyPharma en tant que $roleName.',
+              title: 'Bienvenue sur EasyPharma !',
+              message:
+                  'Ravi de vous revoir, ${auth.user?.firstName}. Nous sommes là pour faciliter vos achats de médicaments.',
               createdAt: DateTime.now(),
               isRead: false,
               type: 'WELCOME',
