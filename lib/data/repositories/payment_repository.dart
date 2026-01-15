@@ -12,7 +12,7 @@ class PaymentRepository {
   Future<Payment> processPayment(Map<String, dynamic> paymentData) async {
     try {
       final response = await _dio.post(
-        ApiConstants.payments,
+        ApiConstants.processPayment,
         data: paymentData,
       );
       if (response.statusCode == 201 || response.statusCode == 200) {

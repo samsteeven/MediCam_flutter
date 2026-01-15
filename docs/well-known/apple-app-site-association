@@ -1,0 +1,13 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "TON_TEAM_ID_ICI.com.example.easypharma",
+                "paths": [
+                    "/reset-password*"
+                ]
+            }
+        ]
+    }
+}

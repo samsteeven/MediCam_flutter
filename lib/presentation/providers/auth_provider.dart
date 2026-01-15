@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/models/user_model.dart';
-import 'package:easypharma_flutter/data/models/auth_response.dart';
 import 'package:easypharma_flutter/data/repositories/auth_repository.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -213,7 +212,7 @@ class AuthProvider with ChangeNotifier {
 
       // Clear local storage
       await _apiService.clearTokens();
-      await _prefs.clear();
+      // await _prefs.clear();
 
       _user = null;
       _error = null;
@@ -221,7 +220,7 @@ class AuthProvider with ChangeNotifier {
       _error = e.toString();
       // Still clear local data even on error
       await _apiService.clearTokens();
-      await _prefs.clear();
+      // await _prefs.clear();
       _user = null;
     } finally {
       _isLoading = false;
@@ -396,9 +395,9 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authRepository.deleteProfile();
 
-      // Clear local storage after successful deletion
+      // Clear local storage
       await _apiService.clearTokens();
-      await _prefs.clear();
+      // await _prefs.clear(); // We don't clear all prefs to preserve user-isolated data
 
       _user = null;
       _error = null;
@@ -439,12 +438,8 @@ class AuthProvider with ChangeNotifier {
     switch (_user!.role) {
       case UserRole.PATIENT:
         return '/patient-home';
-      case UserRole.PHARMACIST:
-        return '/pharmacist-home';
       case UserRole.DELIVERY:
         return '/delivery-home';
-      case UserRole.ADMIN:
-        return '/admin-home';
       default:
         return '/profile';
     }

@@ -1,0 +1,8 @@
+[ {
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.example.easypharma",
+    "sha256_cert_fingerprints": ["6A:F7:43:CD:F7:03:B1:52:44:CD:85:5B:C6:45:CC:C2:AF:22:80:1C:E9:04:71:FB:3C:15:41:A4:4B:3A:68:2C"]
+  }
+} ]

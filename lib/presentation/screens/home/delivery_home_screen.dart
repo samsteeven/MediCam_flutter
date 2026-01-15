@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
@@ -5,6 +6,7 @@ import 'package:easypharma_flutter/presentation/providers/navigation_provider.da
 import 'package:easypharma_flutter/presentation/providers/delivery_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 import 'package:easypharma_flutter/presentation/screens/delivery/widgets/delivery_card.dart';
+import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class DeliveryHomeScreen extends StatefulWidget {
   const DeliveryHomeScreen({super.key});
@@ -15,18 +17,45 @@ class DeliveryHomeScreen extends StatefulWidget {
 }
 
 class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
+  StreamSubscription? _notificationSubscription;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<DeliveryProvider>();
-      provider.fetchStats();
-      provider.fetchOngoingDeliveries();
-      provider.fetchAllDeliveries();
+      final deliveryProvider = context.read<DeliveryProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+      final auth = context.read<AuthProvider>();
+
+      deliveryProvider.fetchStats();
+      deliveryProvider.fetchOngoingDeliveries();
+      deliveryProvider.fetchAllDeliveries();
+
+      // Ensure notifications are initialized for this user
+      notificationProvider.initialize(userId: auth.user?.id);
+
+      _setupNotificationListener();
     });
   }
 
   @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupNotificationListener() {
+    _notificationSubscription = context
+        .read<NotificationProvider>()
+        .alertStream
+        .listen((message) {
+          if (mounted) {
+            NotificationHelper.showInfo(context, message);
+            setState(() {});
+          }
+        });
+  }
+
   Widget build(BuildContext context) {
     return Consumer<NavigationProvider>(
       builder: (context, navProvider, _) {
@@ -199,7 +228,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Text(
-                      'Bienvenue, M. ',
+                      'Bonjour, ',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
@@ -209,7 +238,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                     Consumer<AuthProvider>(
                       builder:
                           (context, authProvider, _) => Text(
-                            authProvider.user?.lastName ?? 'Livreur',
+                            authProvider.user?.firstName ?? 'Livreur',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -279,7 +308,9 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                           child: _buildStatCard(
                             icon: Icons.star_outline,
                             title: 'Note',
-                            value: '4.8',
+                            value:
+                                stats?.averageRating.toStringAsFixed(1) ??
+                                '0.0',
                             color: Colors.purple,
                           ),
                         ),
@@ -383,41 +414,12 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
         }
 
         if (provider.allDeliveries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.inbox, size: 64, color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  'Aucune livraison',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => provider.fetchAllDeliveries(),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  label: const Text(
-                    'Actualiser',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          return _buildEmptyState(
+            icon: Icons.history_outlined,
+            title: 'Historique vide',
+            subtitle: 'Vous n\'avez pas encore effectué de livraisons.',
+            onRefresh: () => provider.fetchAllDeliveries(),
+            buttonText: 'Actualiser la page',
           );
         }
 
@@ -445,45 +447,13 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
         }
 
         if (provider.ongoingDeliveries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.local_shipping_outlined,
-                  size: 64,
-                  color: Colors.grey.shade300,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Aucune livraison en cours',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => provider.fetchOngoingDeliveries(),
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  label: const Text(
-                    'Actualiser',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          return _buildEmptyState(
+            icon: Icons.local_shipping_outlined,
+            title: 'Aucune livraison en cours',
+            subtitle:
+                'Acceptez de nouvelles commandes pour les voir apparaître ici.',
+            onRefresh: () => provider.fetchOngoingDeliveries(),
+            buttonText: 'Vérifier les commandes',
           );
         }
 
@@ -503,80 +473,55 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
   }
 
   Widget _buildOrdersView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.assignment_outlined,
-            size: 64,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Aucune commande disponible',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+    return _buildEmptyState(
+      icon: Icons.assignment_outlined,
+      title: 'Aucune commande disponible',
+      subtitle:
+          'Toutes les commandes sont actuellement assignées. Revenez plus tard !',
     );
   }
 
-  static Widget _buildInfoCard() {
+  Widget _buildInfoCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade50.withOpacity(0.5),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade50, Colors.blue.shade100],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.info_outline, color: Colors.blue.shade700),
-              ),
+              Icon(Icons.info_outline, color: Colors.blue.shade700),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Statut : En ligne',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.blue.shade800,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Text(
+          const SizedBox(height: 12),
+          Text(
             '• Assurez-vous d\'être connecté pour recevoir les nouvelles commandes\n'
             '• Mettez à jour votre statut de disponibilité\n'
             '• Vérifiez régulièrement les notifications',
             style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF424242), // Grey 800
-              fontWeight: FontWeight.w400,
+              fontSize: 13,
+              color: Colors.blue.shade600,
+              fontWeight: FontWeight.w500,
               height: 1.5,
             ),
           ),
@@ -585,7 +530,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     );
   }
 
-  static Widget _buildStatCard({
+  Widget _buildStatCard({
     required IconData icon,
     required String title,
     required String value,
@@ -641,7 +586,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     );
   }
 
-  static Widget _buildShortcutCard({
+  Widget _buildShortcutCard({
     required IconData icon,
     required String title,
     required MaterialColor color,
@@ -686,6 +631,78 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    VoidCallback? onRefresh,
+    String? buttonText,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(icon, size: 80, color: Colors.blue.shade300),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue.shade900,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey.shade600,
+                height: 1.4,
+              ),
+            ),
+          ),
+          if (onRefresh != null) ...[
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh, color: Colors.white, size: 20),
+              label: Text(
+                buttonText ?? 'Actualiser',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -10,6 +10,7 @@ class NotificationProvider with ChangeNotifier {
   final NotificationRepository _repository;
   final SharedPreferences _prefs;
 
+  String? _currentUserId;
   List<NotificationDTO> _notifications = [];
   bool _isLoading = false;
   Timer? _pollingTimer;
@@ -20,7 +21,14 @@ class NotificationProvider with ChangeNotifier {
   NotificationProvider(this._repository, this._prefs);
 
   /// Initialize notifications - should be called after authentication
-  Future<void> initialize() async {
+  Future<void> initialize({String? userId}) async {
+    // If the user has changed, clear the in-memory notifications first
+    if (userId != _currentUserId) {
+      _notifications = [];
+      _unreadCount = 0;
+      _currentUserId = userId;
+    }
+
     // Charger les notifications locales persistées avant fetch serveur
     await _loadLocalNotifications();
 
@@ -39,9 +47,20 @@ class NotificationProvider with ChangeNotifier {
     startPolling();
   }
 
+  /// Clear all data - should be called on logout
+  void clear() {
+    stopPolling();
+    _notifications = [];
+    _unreadCount = 0;
+    _currentUserId = null;
+    notifyListeners();
+  }
+
   Future<void> _loadLocalNotifications() async {
+    if (_currentUserId == null) return;
     try {
-      final raw = _prefs.getString('local_notifications');
+      final key = 'local_notifications_${_currentUserId}';
+      final raw = _prefs.getString(key);
       if (raw == null || raw.isEmpty) return;
       final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
       final local =
@@ -50,9 +69,13 @@ class NotificationProvider with ChangeNotifier {
               .toList();
 
       // Prepend local notifications to in-memory list
+      // Filter out existing duplicates from the in-memory list
+      final localIds = local.map((n) => n.id).toSet();
       _notifications = [
         ...local,
-        ..._notifications.where((n) => !n.id.startsWith('local-')),
+        ..._notifications.where(
+          (n) => !localIds.contains(n.id) && !n.id.startsWith('local-'),
+        ),
       ];
       _unreadCount = _notifications.where((n) => !n.isRead).length;
     } catch (e) {
@@ -61,13 +84,15 @@ class NotificationProvider with ChangeNotifier {
   }
 
   Future<void> _saveLocalNotifications() async {
+    if (_currentUserId == null) return;
     try {
       final local =
           _notifications
               .where((n) => n.id.startsWith('local-'))
               .map((n) => n.toJson())
               .toList();
-      await _prefs.setString('local_notifications', jsonEncode(local));
+      final key = 'local_notifications_${_currentUserId}';
+      await _prefs.setString(key, jsonEncode(local));
     } catch (e) {
       debugPrint('Error saving local notifications: $e');
     }
@@ -78,6 +103,9 @@ class NotificationProvider with ChangeNotifier {
   int get unreadCount => _unreadCount;
 
   Future<void> fetchNotifications({bool background = false}) async {
+    // If not authenticated, we stop
+    if (_currentUserId == null) return;
+
     if (!background) {
       _isLoading = true;
       notifyListeners();
@@ -89,16 +117,10 @@ class NotificationProvider with ChangeNotifier {
       // Trier par date décroissante
       newNotifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      // Conserver les notifications locales (créées côté client) afin qu'elles
-      // ne soient pas écrasées par un fetch serveur vide.
+      // Conserver les notifications locales (créées côté client)
       final localNotifications =
           _notifications.where((n) => n.id.startsWith('local-')).toList();
 
-      // Dédupliquer en comparant les IDs bruts (sans le préfixe 'local-').
-      // Si une notification locale a pour id 'local-123' et que le serveur
-      // renvoie '123', on considère que c'est la même notification et on garde
-      // la version locale (pour éviter de l'écraser), sauf si le serveur fournit
-      // une version plus récente (rare pour les locales).
       final localRawIds =
           localNotifications
               .map((n) => n.id.replaceFirst('local-', ''))
@@ -122,7 +144,10 @@ class NotificationProvider with ChangeNotifier {
 
       // Si le nombre de notifications non lues a augmenté, émettre une alerte
       if (newUnread > previousUnread) {
-        _showLocalAlert();
+        final newOnes = merged.where((n) => !n.isRead).toList();
+        if (newOnes.isNotEmpty) {
+          _showLocalAlert(newOnes.first.message);
+        }
       }
 
       // Mettre à jour la liste et le compteur
@@ -130,6 +155,7 @@ class NotificationProvider with ChangeNotifier {
       _unreadCount = newUnread;
     } catch (e) {
       debugPrint('Error fetching notifications: $e');
+      // On ne vide pas la liste en cas d'erreur de polling background
     } finally {
       if (!background) {
         _isLoading = false;
@@ -176,8 +202,8 @@ class NotificationProvider with ChangeNotifier {
     _pollingTimer?.cancel();
   }
 
-  void _showLocalAlert() {
-    _alertController.add('Vous avez de nouvelles notifications');
+  void _showLocalAlert(String message) {
+    _alertController.add(message);
   }
 
   /// Add a notification locally (useful when server does not create it yet)
@@ -192,7 +218,7 @@ class NotificationProvider with ChangeNotifier {
     _notifications.insert(0, toAdd);
     if (!toAdd.isRead) {
       _unreadCount = _notifications.where((n) => !n.isRead).length;
-      _showLocalAlert();
+      _showLocalAlert(toAdd.message);
     }
     // Persist local notifications
     _saveLocalNotifications();

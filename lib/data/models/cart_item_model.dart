@@ -1,4 +1,5 @@
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
 
 class CartItem {
   final String id;

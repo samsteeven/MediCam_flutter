@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/data/models/user_model.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
+import 'package:easypharma_flutter/presentation/providers/notification_provider.dart';
 import 'package:easypharma_flutter/core/utils/notification_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -50,16 +51,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-Widget _buildBody(AuthProvider authProvider, User? user) {
-  // LIGNE À MODIFIER : Utilise l'état isLoading du provider
-  if (authProvider.isLoading && user == null) {
-    return const Center(child: CircularProgressIndicator());
+  Widget _buildBody(AuthProvider authProvider, User? user) {
+    // LIGNE À MODIFIER : Utilise l'état isLoading du provider
+    if (authProvider.isLoading && user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (user == null) {
+      return const Center(child: Text("Utilisateur non connecté"));
+    }
+    return _buildProfileContent(user);
   }
-  if (user == null) {
-    return const Center(child: Text("Utilisateur non connecté"));
-  }
-  return _buildProfileContent(user); 
-}
+
   Widget _buildProfileContent(User user) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -192,17 +194,10 @@ Widget _buildBody(AuthProvider authProvider, User? user) {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black, // Secondary Black
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildStatusRow(
-                    icon: Icons.verified_user_outlined,
-                    label: 'Vérification',
-                    isActive: user.isVerified,
-                    status: user.isVerified ? 'Vérifié' : 'Non vérifié',
-                  ),
-                  const SizedBox(height: 12),
                   _buildStatusRow(
                     icon: Icons.check_circle_outline,
                     label: 'Activité',
@@ -345,6 +340,9 @@ Widget _buildBody(AuthProvider authProvider, User? user) {
 
     if (confirmed == true) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      try {
+        context.read<NotificationProvider>().clear();
+      } catch (_) {}
       await authProvider.logout();
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
@@ -627,7 +625,7 @@ Widget _buildBody(AuthProvider authProvider, User? user) {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Colors.black, // Secondary Black
+                color: Colors.black87, // Secondary Black
               ),
             ),
             const SizedBox(height: 16),

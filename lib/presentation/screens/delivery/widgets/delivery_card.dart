@@ -27,7 +27,9 @@ class DeliveryCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Livraison #${delivery.id.substring(0, 8)}',
+                  delivery.id.isNotEmpty
+                      ? 'Livraison #${delivery.id.length >= 8 ? delivery.id.substring(0, 8) : delivery.id}'
+                      : 'Livraison',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -65,7 +67,11 @@ class DeliveryCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    delivery.order?.pharmacyId ?? 'Pharmacie locale',
+                    // Prefer pharmacy name if available, fallback to id or delivery address
+                    delivery.order?.pharmacyId ??
+                        delivery.order?.id ??
+                        delivery.order?.pharmacyId ??
+                        'Pharmacie locale',
                     style: const TextStyle(fontSize: 14),
                   ),
                 ),
@@ -94,7 +100,7 @@ class DeliveryCard extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     if (delivery.status == DeliveryStatus.DELIVERED ||
-        delivery.status == DeliveryStatus.CANCELLED) {
+        delivery.status == DeliveryStatus.FAILED) {
       return const SizedBox.shrink();
     }
 
@@ -156,8 +162,6 @@ class DeliveryCard extends StatelessWidget {
 
   Color _getStatusColor(DeliveryStatus status) {
     switch (status) {
-      case DeliveryStatus.PENDING:
-        return Colors.grey;
       case DeliveryStatus.ASSIGNED:
         return Colors.blue;
       case DeliveryStatus.PICKED_UP:
@@ -166,8 +170,8 @@ class DeliveryCard extends StatelessWidget {
         return Colors.amber.shade700;
       case DeliveryStatus.DELIVERED:
         return Colors.green;
-      case DeliveryStatus.CANCELLED:
-        return Colors.red;
+      case DeliveryStatus.FAILED:
+        return Colors.redAccent;
     }
   }
 }

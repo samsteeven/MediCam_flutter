@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:easypharma_flutter/data/models/cart_item_model.dart';
 import 'package:easypharma_flutter/data/models/medication_model.dart';
+import 'package:easypharma_flutter/data/models/pharmacy_model.dart';
 
 class CartProvider with ChangeNotifier {
   final Map<String, CartItem> _items = {};

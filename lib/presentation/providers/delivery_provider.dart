@@ -79,13 +79,13 @@ class DeliveryProvider with ChangeNotifier {
       );
       if (ongoingIndex != -1) {
         if (status == DeliveryStatus.DELIVERED ||
-            status == DeliveryStatus.CANCELLED) {
+            status == DeliveryStatus.FAILED) {
           _ongoingDeliveries.removeAt(ongoingIndex);
         } else {
           _ongoingDeliveries[ongoingIndex] = updated;
         }
       } else if (status != DeliveryStatus.DELIVERED &&
-          status != DeliveryStatus.CANCELLED) {
+          status != DeliveryStatus.FAILED) {
         _ongoingDeliveries.add(updated);
       }
 

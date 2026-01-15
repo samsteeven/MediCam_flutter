@@ -79,25 +79,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final homeRoute = authProvider.homeRoute;
       // Réinitialiser les onglets de navigation en arrivant
       context.read<NavigationProvider>().reset();
-      // Ajouter une notification de bienvenue localement (si le serveur ne la crée pas)
+      // Ajouter une notification de bienvenue localement
       try {
         final notifProvider = Provider.of<NotificationProvider>(
           context,
           listen: false,
         );
-        final roleName =
-            authProvider.user?.role.name.toLowerCase() ?? 'patient';
+        await notifProvider.initialize(userId: authProvider.user?.id);
+
         final welcome = NotificationDTO(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          title: 'Bienvenue',
-          message: 'Bienvenue sur EasyPharma en tant que $roleName.',
+          title: 'Bienvenue sur EasyPharma !',
+          message:
+              'Félicitations ${authProvider.user?.firstName}, votre compte a été créé avec succès.',
           createdAt: DateTime.now(),
           isRead: false,
           type: 'WELCOME',
         );
         notifProvider.addLocalNotification(welcome);
-      } catch (_) {
-        // ignore errors - notification provider may not be available yet
+      } catch (e) {
+        debugPrint('Error adding welcome notification: $e');
       }
       // Demander les permissions (notifications, localisation, camera, stockage)
       try {

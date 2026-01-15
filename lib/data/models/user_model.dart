@@ -1,6 +1,11 @@
-import 'package:flutter/foundation.dart';
 
-enum UserRole { ADMIN, PHARMACIST, PATIENT, DELIVERY }
+enum UserRole {
+  SUPER_ADMIN,
+  PHARMACY_ADMIN,
+  PHARMACY_EMPLOYEE,
+  PATIENT,
+  DELIVERY,
+}
 
 class User {
   final String id;
@@ -16,7 +21,8 @@ class User {
   final bool isActive;
   final bool isVerified;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final String? pharmacyId;
+  final String? pharmacyName;
 
   User({
     required this.id,
@@ -32,58 +38,68 @@ class User {
     required this.isActive,
     required this.isVerified,
     required this.createdAt,
-    required this.updatedAt,
+    this.pharmacyId,
+    this.pharmacyName,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // Helper function to safely convert any value to string
-    String safeString(dynamic value) {
-      if (value == null) return '';
-      return value.toString();
-    }
+    String s(dynamic v) => v == null ? '' : v.toString();
 
-    // Helper function to check if key exists and get value
-    String getString(Map<String, dynamic> json, String key) {
-      if (!json.containsKey(key)) return '';
-      return safeString(json[key]);
-    }
-
-    // Helper for DateTime parsing
-    DateTime parseDateTime(dynamic value) {
+    double? pd(dynamic v) {
+      if (v == null) return null;
       try {
-        if (value == null) return DateTime.now();
-        return DateTime.parse(value.toString());
-      } catch (e) {
+        return double.parse(v.toString());
+      } catch (_) {
+        return null;
+      }
+    }
+
+    DateTime pdt(dynamic v) {
+      if (v == null) return DateTime.now();
+      try {
+        return DateTime.parse(v.toString());
+      } catch (_) {
         return DateTime.now();
       }
     }
 
-    // Helper for double parsing
-    double? parseDouble(dynamic value) {
-      if (value == null) return null;
-      if (value is num) return value.toDouble();
-      if (value is String) {
-        return double.tryParse(value);
+    UserRole parseRole(dynamic v) {
+      final role = s(v).toUpperCase();
+      switch (role) {
+        case 'SUPER_ADMIN':
+          return UserRole.SUPER_ADMIN;
+        case 'PHARMACY_ADMIN':
+          return UserRole.PHARMACY_ADMIN;
+        case 'PHARMACY_EMPLOYEE':
+          return UserRole.PHARMACY_EMPLOYEE;
+        case 'DELIVERY':
+          return UserRole.DELIVERY;
+        case 'PATIENT':
+        default:
+          return UserRole.PATIENT;
       }
-      return null;
     }
 
     return User(
-      id: safeString(json['id']),
-      email: safeString(json['email']),
-      firstName: safeString(json['firstName']),
-      lastName: safeString(json['lastName']),
-      phone: safeString(json['phone']),
-      role: _parseRole(safeString(json['role'])),
-      // CORRECTION IMPORTANTE : Utilise getString qui vérifie si la clé existe
-      address: getString(json, 'address'),
-      city: getString(json, 'city'),
-      latitude: parseDouble(json['latitude']),
-      longitude: parseDouble(json['longitude']),
-      isActive: json['isActive'] == true,
-      isVerified: json['isVerified'] == true,
-      createdAt: parseDateTime(json['createdAt']),
-      updatedAt: parseDateTime(json['updatedAt']),
+      id: s(json['id'] ?? json['userId'] ?? json['user_id']),
+      email: s(json['email'] ?? json['mail'] ?? ''),
+      firstName: s(json['firstName'] ?? json['first_name'] ?? ''),
+      lastName: s(json['lastName'] ?? json['last_name'] ?? ''),
+      phone: s(json['phone'] ?? json['telephone'] ?? ''),
+      role: parseRole(json['role'] ?? json['userRole']),
+      address: s(json['address'] ?? ''),
+      city: s(json['city'] ?? ''),
+      latitude: pd(json['latitude'] ?? json['lat']),
+      longitude: pd(json['longitude'] ?? json['lon'] ?? json['lng']),
+      isActive: (json['isActive'] ?? json['active'] ?? false) == true,
+      isVerified: (json['isVerified'] ?? json['verified'] ?? false) == true,
+      createdAt: pdt(json['createdAt'] ?? json['created_at']),
+      pharmacyId: s(
+        json['pharmacyId'] ?? json['pharmacy_id'] ?? json['pharmacyId'],
+      ),
+      pharmacyName: s(
+        json['pharmacyName'] ?? json['pharmacy_name'] ?? json['pharmacyName'],
+      ),
     );
   }
 
@@ -94,7 +110,7 @@ class User {
       'firstName': firstName,
       'lastName': lastName,
       'phone': phone,
-      'role': role.name,
+      'role': role.toString().split('.').last,
       'address': address.isEmpty ? null : address,
       'city': city.isEmpty ? null : city,
       'latitude': latitude,
@@ -102,35 +118,18 @@ class User {
       'isActive': isActive,
       'isVerified': isVerified,
       'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'pharmacyId': pharmacyId,
+      'pharmacyName': pharmacyName,
     };
   }
 
-  static UserRole _parseRole(String? role) {
-    if (role == null || role.isEmpty) {
-      throw ArgumentError('User role is missing or null');
-    }
-
-    switch (role.toUpperCase()) {
-      case 'ADMIN':
-        return UserRole.ADMIN;
-      case 'PHARMACIST':
-        return UserRole.PHARMACIST;
-      case 'PATIENT':
-        return UserRole.PATIENT;
-      case 'DELIVERY':
-        return UserRole.DELIVERY;
-      default:
-        throw ArgumentError('Invalid user role: $role');
-    }
-  }
-
-  String get fullName => '$firstName $lastName';
+  String get fullName => '$firstName $lastName'.trim();
 
   bool get isPatient => role == UserRole.PATIENT;
-  bool get isPharmacist => role == UserRole.PHARMACIST;
+  bool get isPharmacist =>
+      role == UserRole.PHARMACY_EMPLOYEE || role == UserRole.PHARMACY_ADMIN;
   bool get isDelivery => role == UserRole.DELIVERY;
-  bool get isAdmin => role == UserRole.ADMIN;
+  bool get isAdmin => role == UserRole.SUPER_ADMIN;
 
   @override
   String toString() {
@@ -151,7 +150,8 @@ class User {
     bool? isActive,
     bool? isVerified,
     DateTime? createdAt,
-    DateTime? updatedAt,
+    String? pharmacyId,
+    String? pharmacyName,
   }) {
     return User(
       id: id ?? this.id,
@@ -167,7 +167,8 @@ class User {
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      pharmacyId: pharmacyId ?? this.pharmacyId,
+      pharmacyName: pharmacyName ?? this.pharmacyName,
     );
   }
 }
