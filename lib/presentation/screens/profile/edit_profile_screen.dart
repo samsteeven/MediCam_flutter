@@ -1,5 +1,6 @@
 import 'package:easypharma_flutter/data/models/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:easypharma_flutter/presentation/providers/auth_provider.dart';
 import 'package:easypharma_flutter/presentation/providers/location_provider.dart';
@@ -279,6 +280,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       controller: _phoneController,
                       label: 'Téléphone *',
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: Validators.validatePhone,
                       isRequired: true,
                     ),
@@ -354,7 +356,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _updateProfile,
+                            onPressed: _isLoading ? null : _updateProfile,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade700,
                               foregroundColor: Colors.white,
@@ -363,7 +365,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: const Text('Enregistrer'),
+                            child:
+                                _isLoading
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.blue,
+                                      ),
+                                    )
+                                    : const Text('Enregistrer'),
                           ),
                         ),
                       ],
@@ -401,13 +413,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-          if (_isLoading)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.2),
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            ),
         ],
       ),
     );

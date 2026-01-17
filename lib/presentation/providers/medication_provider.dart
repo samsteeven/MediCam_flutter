@@ -57,16 +57,24 @@ class MedicationProvider extends ChangeNotifier {
     double? minPrice,
     double? maxPrice,
     String? availability,
+    bool isFilterUpdate = false,
   }) async {
     _isLoading = true;
     _errorMessage = null;
     _searchQuery = query;
-    _selectedTherapeuticClass = therapeuticClass ?? _selectedTherapeuticClass;
-    _sortBy = sortBy ?? _sortBy;
-    _requiresPrescription = requiresPrescription ?? _requiresPrescription;
-    _minPrice = minPrice ?? _minPrice;
-    _maxPrice = maxPrice ?? _maxPrice;
-    _availability = availability ?? _availability;
+
+    if (isFilterUpdate) {
+      _selectedTherapeuticClass = therapeuticClass;
+      _requiresPrescription = requiresPrescription;
+      _minPrice = minPrice;
+      _maxPrice = maxPrice;
+      _availability = availability;
+      _sortBy = sortBy ?? _sortBy;
+    } else {
+      // Si ce n'est pas une mise à jour explicite des filtres,
+      // on peut quand même autoriser le changement de tri s'il est fourni
+      if (sortBy != null) _sortBy = sortBy;
+    }
     notifyListeners();
 
     try {
@@ -83,8 +91,7 @@ class MedicationProvider extends ChangeNotifier {
         availability: _availability,
       );
 
-      _searchResults =
-          results; // Le tri est fait côté serveur ou par _sortPharmacyMedications si besoin localement
+      _searchResults = _sortPharmacyMedications(results);
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
@@ -287,9 +294,14 @@ class MedicationProvider extends ChangeNotifier {
     List<PharmacyMedication> medications,
   ) {
     final sorted = List<PharmacyMedication>.from(medications);
-    switch (_sortBy) {
+    final sortCriteria = _sortBy.toLowerCase();
+    switch (sortCriteria) {
       case 'name':
-        sorted.sort((a, b) => a.medication.name.compareTo(b.medication.name));
+        sorted.sort(
+          (a, b) => a.medication.name.toLowerCase().compareTo(
+            b.medication.name.toLowerCase(),
+          ),
+        );
         break;
       case 'price':
         sorted.sort((a, b) => a.price.compareTo(b.price));
@@ -301,12 +313,17 @@ class MedicationProvider extends ChangeNotifier {
   /// Trier les prix
   List<PharmacyMedication> _sortPrices(List<PharmacyMedication> prices) {
     final sorted = List<PharmacyMedication>.from(prices);
-    switch (_sortBy) {
+    final sortCriteria = _sortBy.toLowerCase();
+    switch (sortCriteria) {
       case 'price':
         sorted.sort((a, b) => a.price.compareTo(b.price));
         break;
       case 'name':
-        sorted.sort((a, b) => a.pharmacy.name.compareTo(b.pharmacy.name));
+        sorted.sort(
+          (a, b) => a.pharmacy.name.toLowerCase().compareTo(
+            b.pharmacy.name.toLowerCase(),
+          ),
+        );
         break;
     }
     return sorted;

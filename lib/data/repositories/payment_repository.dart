@@ -1,46 +1,52 @@
-import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/core/constants/api_constants.dart';
-import 'package:easypharma_flutter/data/models/payment_model.dart';
+import 'package:easypharma_flutter/core/services/api_service.dart';
 
 class PaymentRepository {
-  final Dio _dio;
+  final ApiService _apiService;
 
-  PaymentRepository(this._dio);
+  PaymentRepository(this._apiService);
 
-  /// Effectuer un paiement
-  /// POST /api/v1/payments
-  Future<Payment> processPayment(Map<String, dynamic> paymentData) async {
+  Future<Map<String, dynamic>> processPayment({
+    required String orderId,
+    required String method, // 'ORANGE_MONEY', 'MTN_MOMO'
+    required double amount,
+    required String phoneNumber,
+  }) async {
     try {
-      final response = await _dio.post(
+      final response = await _apiService.post(
         ApiConstants.processPayment,
-        data: paymentData,
+        data: {
+          'orderId': orderId,
+          'method': method,
+          'amount': amount,
+          'phoneNumber': phoneNumber,
+        },
       );
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data =
-            response.data is Map ? response.data : response.data['data'];
-        return Payment.fromJson(data as Map<String, dynamic>);
-      }
-      throw Exception('Erreur lors du paiement: ${response.statusCode}');
-    } on DioException catch (e) {
-      throw Exception('Erreur réseau: ${e.message}');
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to process payment: $e');
     }
   }
 
-  /// Récupérer le paiement d'une commande
-  /// GET /api/v1/payments/order/{orderId}
-  Future<Payment?> getPaymentByOrder(String orderId) async {
+  Future<Map<String, dynamic>> getPaymentReceipt(String paymentId) async {
     try {
-      final response = await _dio.get(ApiConstants.orderPayment(orderId));
-      if (response.statusCode == 200) {
-        final data =
-            response.data is Map ? response.data : response.data['data'];
-        if (data == null) return null;
-        return Payment.fromJson(data as Map<String, dynamic>);
-      }
-      return null;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) return null;
-      throw Exception('Erreur réseau: ${e.message}');
+      final response = await _apiService.get(
+        ApiConstants.paymentReceipt(paymentId),
+      );
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to get receipt: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchPaymentByOrder(String orderId) async {
+    try {
+      final response = await _apiService.get(
+        '${ApiConstants.payments}/by-order/$orderId',
+      );
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to fetch payment: $e');
     }
   }
 }

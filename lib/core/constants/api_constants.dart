@@ -4,7 +4,7 @@ class ApiConstants {
   }
 
   // === ADMIN DASHBOARD ===
-  static const String adminTopSold = '/admin/dashboard/top-medications/sold';
+  static const String adminTopSold = '/medications/trending';
   static const String adminTopSearched =
       '/admin/dashboard/top-medications/searched';
   static const String adminStats = '/admin/dashboard/stats';

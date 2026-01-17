@@ -67,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // Naviguer vers l'accueil en fonction du rôle
+      if (!mounted) return;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final homeRoute = authProvider.homeRoute;
       // Réinitialiser les onglets de navigation en arrivant
@@ -78,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacementNamed(context, '/patient-home');
       }
     } catch (e) {
+      if (!mounted) return;
       // Show error snackbar
       NotificationHelper.showError(context, 'Erreur: $e');
     }
@@ -195,9 +197,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login button
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
                     child:
                         authProvider.isLoading
                             ? SizedBox(

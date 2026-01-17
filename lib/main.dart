@@ -42,6 +42,10 @@ import 'package:easypharma_flutter/presentation/screens/checkout/checkout_screen
 import 'package:easypharma_flutter/presentation/screens/pharmacy/pharmacy_details_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/medication/medication_details_screen.dart';
 import 'package:easypharma_flutter/presentation/screens/payments/payments_screen.dart';
+import 'package:easypharma_flutter/presentation/screens/payments/receipt_screen.dart';
+
+import 'package:easypharma_flutter/data/repositories/payment_repository.dart';
+import 'package:easypharma_flutter/presentation/providers/payment_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +56,7 @@ void main() async {
   await apiService.ensureDioReady();
   final authRepository = AuthRepository(apiService.dio, apiService);
   final pharmaciesRepository = PharmaciesRepository(apiService.dio);
+  final paymentRepository = PaymentRepository(apiService);
 
   runApp(
     MultiProvider(
@@ -60,6 +65,7 @@ void main() async {
         Provider<ApiService>.value(value: apiService),
         Provider<AuthRepository>.value(value: authRepository),
         Provider<PharmaciesRepository>.value(value: pharmaciesRepository),
+        Provider<PaymentRepository>.value(value: paymentRepository),
         ChangeNotifierProvider<LocationProvider>(
           create: (context) => LocationProvider(),
         ),
@@ -112,14 +118,17 @@ void main() async {
         ),
         ChangeNotifierProvider<ReviewProvider>(
           create:
-              (context) => ReviewProvider(
-                ReviewRepository(context.read<ApiService>().dio),
-              ),
+              (context) =>
+                  ReviewProvider(ReviewRepository(context.read<ApiService>())),
         ),
         ChangeNotifierProvider<PharmaciesProvider>(
           create:
               (context) =>
                   PharmaciesProvider(context.read<PharmaciesRepository>()),
+        ),
+        ChangeNotifierProvider<PaymentProvider>(
+          create:
+              (context) => PaymentProvider(context.read<PaymentRepository>()),
         ),
       ],
       child: const MyApp(),
@@ -200,6 +209,15 @@ class MyApp extends StatelessWidget {
               context,
               const NotificationCenterScreen(),
             ),
+        '/receipt': (context) {
+          final paymentData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>;
+          return _buildProtectedScreen(
+            context,
+            ReceiptScreen(paymentData: paymentData),
+          );
+        },
         '/forgot-password':
             (context) =>
                 _buildAuthScreen(context, const ForgotPasswordScreen()),
@@ -264,6 +282,9 @@ class MyApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: Colors.blue,
         accentColor: Colors.blueAccent,
+      ).copyWith(
+        primary: Colors.blue.shade700,
+        secondary: Colors.blue.shade500,
       ),
       scaffoldBackgroundColor: Colors.grey.shade50,
       appBarTheme: AppBarTheme(
@@ -314,10 +335,32 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.blue.shade700,
           foregroundColor: Colors.white,
           elevation: 2,
+          shadowColor: Colors.blue.withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.blue.shade700,
+          side: BorderSide(color: Colors.blue.shade700, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -328,7 +371,15 @@ class MyApp extends StatelessWidget {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: Colors.blue.shade700,
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
         ),
       ),
       cardTheme: CardThemeData(

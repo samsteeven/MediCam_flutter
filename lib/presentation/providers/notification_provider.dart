@@ -138,14 +138,19 @@ class NotificationProvider with ChangeNotifier {
         }
       }
 
+      // Trier par date décroissante
+      merged.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
       // Calculer les unread avant et après
       final int previousUnread = _unreadCount;
       final int newUnread = merged.where((n) => !n.isRead).length;
 
       // Si le nombre de notifications non lues a augmenté, émettre une alerte
+      // On s'assure de prendre la plus récente non lue
       if (newUnread > previousUnread) {
         final newOnes = merged.where((n) => !n.isRead).toList();
         if (newOnes.isNotEmpty) {
+          // Comme c'est trié par date DESC, la première est la plus récente
           _showLocalAlert(newOnes.first.message);
         }
       }
@@ -193,7 +198,7 @@ class NotificationProvider with ChangeNotifier {
 
   void startPolling() {
     _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       fetchNotifications(background: true);
     });
   }

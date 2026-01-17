@@ -64,6 +64,7 @@ enum OrderStatus {
 class OrderItem {
   final String id;
   final String medicationId;
+  final String medicationName;
   final int quantity;
   final double unitPrice;
   final double totalPrice;
@@ -71,6 +72,7 @@ class OrderItem {
   OrderItem({
     required this.id,
     required this.medicationId,
+    this.medicationName = 'Médicament',
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
@@ -80,6 +82,7 @@ class OrderItem {
     return OrderItem(
       id: json['id'] as String? ?? '',
       medicationId: json['medicationId'] as String? ?? '',
+      medicationName: json['medicationName'] as String? ?? 'Médicament',
       quantity: json['quantity'] as int? ?? 0,
       unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0.0,
       totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
@@ -90,6 +93,7 @@ class OrderItem {
     return {
       'id': id,
       'medicationId': medicationId,
+      'medicationName': medicationName,
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,

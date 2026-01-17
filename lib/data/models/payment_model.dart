@@ -4,7 +4,7 @@ class Payment {
   final String id;
   final String orderId;
   final double amount;
-  final String method; // e.g., ORANGE_MONEY, WAVE, CARD
+  final String method; // e.g., ORANGE_MONEY, MTN_MOMO
   final PaymentStatus status;
   final String? transactionReference;
   final DateTime createdAt;

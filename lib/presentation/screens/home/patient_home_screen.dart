@@ -94,11 +94,29 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final navProvider = context.watch<NavigationProvider>();
+
+    // Dynamic AppBar Title
+    String title = 'EasyPharma';
+    switch (navProvider.currentIndex) {
+      case 0:
+        title = 'EasyPharma';
+        break;
+      case 1:
+        title = 'Recherche';
+        break;
+      case 2:
+        title = 'Mon Panier';
+        break;
+      case 3:
+        title = 'Mes Commandes';
+        break;
+    }
+
     return Consumer<CartProvider>(
       builder: (context, cartProvider, _) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('EasyPharma'),
+            title: Text(title),
             actions: [
               Consumer<NotificationProvider>(
                 builder: (context, provider, _) {
@@ -163,7 +181,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               _buildHomeView(context),
               _buildSearchView(),
               _buildCartView(),
-              _buildHistoryView(),
+              _buildOrdersView(), // Renaming from _buildHistoryView
             ],
           ),
           bottomNavigationBar: Consumer<CartProvider>(
@@ -190,9 +208,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     label: 'Panier',
                   ),
                   const BottomNavigationBarItem(
-                    icon: Icon(Icons.history_outlined),
-                    activeIcon: Icon(Icons.history),
-                    label: 'Historique',
+                    icon: Icon(Icons.receipt_long_outlined),
+                    activeIcon: Icon(Icons.receipt_long),
+                    label: 'Commandes',
                   ),
                 ],
                 currentIndex: navProvider.currentIndex,
@@ -286,11 +304,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   onTap: () {
                     Navigator.pushNamed(
                       context,
-                      '/pharmacy',
-                      arguments: {
-                        'pharmacyId': pm.pharmacy.id,
-                        'name': pm.pharmacy.name,
-                      },
+                      '/medication',
+                      arguments: {'pharmacyMedication': pm},
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -321,7 +336,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                   fontSize: 16,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 6),
                               Row(
                                 children: [
                                   Icon(
@@ -329,7 +344,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                     size: 14,
                                     color: Colors.blue.shade700,
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       pm.pharmacy.name,
@@ -342,43 +357,50 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  if (pm.pharmacy.averageRating > 0)
-                                    Row(
-                                      children: [
-                                        ...List.generate(5, (index) {
-                                          double starRating = index + 1.0;
-                                          IconData icon;
-                                          if (pm.pharmacy.averageRating >=
-                                              starRating) {
-                                            icon = Icons.star;
-                                          } else if (pm
-                                                  .pharmacy
-                                                  .averageRating >=
-                                              starRating - 0.5) {
-                                            icon = Icons.star_half;
-                                          } else {
-                                            icon = Icons.star_border;
-                                          }
-                                          return Icon(
-                                            icon,
-                                            color: Colors.amber,
-                                            size: 14,
-                                          );
-                                        }),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          pm.pharmacy.averageRating
-                                              .toStringAsFixed(1),
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  ...List.generate(5, (index) {
+                                    double starRating = index + 1.0;
+                                    IconData icon;
+                                    if (pm.pharmacy.averageRating >=
+                                        starRating) {
+                                      icon = Icons.star;
+                                    } else if (pm.pharmacy.averageRating >=
+                                        starRating - 0.5) {
+                                      icon = Icons.star_half;
+                                    } else {
+                                      icon = Icons.star_border;
+                                    }
+                                    return Icon(
+                                      icon,
+                                      color: Colors.amber,
+                                      size: 16,
+                                    );
+                                  }),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    pm.pharmacy.averageRating.toStringAsFixed(
+                                      1,
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '(${pm.pharmacy.ratingCount} avis)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
                               Text(
                                 med.description ?? '',
                                 style: TextStyle(
@@ -388,7 +410,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               Row(
                                 children: [
                                   Text(
@@ -432,14 +454,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(
-                            Icons.add_shopping_cart,
-                            color:
-                                isOutOfStock
-                                    ? Colors.grey
-                                    : Colors.blue.shade700,
-                          ),
+                        ElevatedButton.icon(
                           onPressed:
                               isOutOfStock
                                   ? null
@@ -459,6 +474,23 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                       },
                                     );
                                   },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isOutOfStock
+                                    ? Colors.grey.shade300
+                                    : Colors.blue.shade700,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 10,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          icon: const Icon(Icons.add_shopping_cart, size: 16),
+                          label: const Text(
+                            'Ajouter',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                       ],
                     ),
@@ -545,19 +577,12 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 children: [
                   Expanded(
                     child: _buildStatCard(
-                      icon: Icons.shopping_bag_outlined,
+                      icon: Icons.receipt_long_outlined,
                       title: 'Commandes',
                       value: ordersProvider.myOrders.length.toString(),
                       color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Icons.favorite_outline,
-                      title: 'Favoris',
-                      value: '0',
-                      color: Colors.red,
+                      onTap:
+                          () => context.read<NavigationProvider>().setIndex(3),
                     ),
                   ),
                 ],
@@ -602,8 +627,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     onTap: () => context.read<NavigationProvider>().setIndex(2),
                   ),
                   _buildShortcutCard(
-                    icon: Icons.history_outlined,
-                    title: 'Historique',
+                    icon: Icons.receipt_long_outlined,
+                    title: 'Commandes',
                     color: Colors.orange,
                     onTap: () => context.read<NavigationProvider>().setIndex(3),
                   ),
@@ -626,10 +651,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Offres spéciales',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.black,
                 ),
@@ -639,7 +664,146 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
+
+        // === SECTION POPULAIRES ===
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Médicaments populaires',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed:
+                        () => context.read<NavigationProvider>().setIndex(1),
+                    child: const Text('Voir tout'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Consumer<MedicationProvider>(
+                builder: (context, medProvider, _) {
+                  if (medProvider.isLoading &&
+                      medProvider.catalogResults.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final medications =
+                      medProvider.catalogResults.take(5).toList();
+                  if (medications.isEmpty) {
+                    return const Center(
+                      child: Text('Aucun médicament populaire pour le moment'),
+                    );
+                  }
+
+                  return SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: medications.length,
+                      itemBuilder: (context, index) {
+                        final medication = medications[index];
+                        return Container(
+                          width: 160,
+                          margin: const EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              // Recherche automatique pour trouver des pharmacies proposant ce médicament
+                              medProvider.searchMedications(medication.name);
+                              context.read<NavigationProvider>().setIndex(1);
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 80,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.medication,
+                                      size: 40,
+                                      color: Colors.blue.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    medication.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    medication.therapeuticClass.displayName,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Voir prix',
+                                        style: TextStyle(
+                                          color: Colors.blue.shade700,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 10,
+                                        color: Colors.blue,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 40),
       ],
     );
   }
@@ -695,53 +859,57 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     required String title,
     required String value,
     required MaterialColor color,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade100,
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              color: color.shade50,
-              borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade100,
+              blurRadius: 10,
+              spreadRadius: 2,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(icon, color: color.shade700, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: color.shade700,
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: color.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color.shade700, size: 24),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: color.shade700,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -853,13 +1021,50 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'Essayez une autre recherche',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
+                      Consumer<MedicationProvider>(
+                        builder: (context, medProv, _) {
+                          final hasFilters =
+                              medProv.minPrice != null ||
+                              medProv.maxPrice != null;
+                          return Column(
+                            children: [
+                              Text(
+                                hasFilters
+                                    ? 'Aucun médicament ne correspond à vos critères.\nEssayez d\'ajuster les filtres de prix.'
+                                    : 'Essayez une autre recherche',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              if (hasFilters) ...[
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    medProv.clearResults();
+                                    medProv.searchMedications(
+                                      '',
+                                      userLat:
+                                          locationProvider
+                                              .userLocation
+                                              ?.latitude,
+                                      userLon:
+                                          locationProvider
+                                              .userLocation
+                                              ?.longitude,
+                                      sortBy: 'NEAREST',
+                                    );
+                                  },
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text(
+                                    'Réinitialiser les filtres',
+                                  ),
+                                ),
+                              ],
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -911,12 +1116,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ElevatedButton(
                   onPressed:
                       () => context.read<NavigationProvider>().setIndex(1),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                  ),
                   child: const Text('Rechercher des produits'),
                 ),
               ],
@@ -979,44 +1178,43 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                     fontSize: 13,
                                   ),
                                 ),
-                                if (item.pharmacy.averageRating > 0)
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          ...List.generate(5, (index) {
-                                            double starRating = index + 1.0;
-                                            IconData icon;
-                                            if (item.pharmacy.averageRating >=
-                                                starRating) {
-                                              icon = Icons.star;
-                                            } else if (item
-                                                    .pharmacy
-                                                    .averageRating >=
-                                                starRating - 0.5) {
-                                              icon = Icons.star_half;
-                                            } else {
-                                              icon = Icons.star_border;
-                                            }
-                                            return Icon(
-                                              icon,
-                                              color: Colors.amber,
-                                              size: 16,
-                                            );
-                                          }),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            item.pharmacy.averageRating
-                                                .toStringAsFixed(1),
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        ...List.generate(5, (index) {
+                                          double starRating = index + 1.0;
+                                          IconData icon;
+                                          if (item.pharmacy.averageRating >=
+                                              starRating) {
+                                            icon = Icons.star;
+                                          } else if (item
+                                                  .pharmacy
+                                                  .averageRating >=
+                                              starRating - 0.5) {
+                                            icon = Icons.star_half;
+                                          } else {
+                                            icon = Icons.star_border;
+                                          }
+                                          return Icon(
+                                            icon,
+                                            color: Colors.amber,
+                                            size: 16,
+                                          );
+                                        }),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          item.pharmacy.averageRating
+                                              .toStringAsFixed(1),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (item.pharmacy.ratingCount > 0)
                                       Text(
                                         '${item.pharmacy.ratingCount} avis',
                                         style: TextStyle(
@@ -1024,8 +1222,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                           fontSize: 12,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                  ],
+                                ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '${item.price} FCFA / unité',
@@ -1179,18 +1377,32 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 56,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onPressed: () => _handleValidateOrder(context, cart),
-                        child: const Text(
-                          'Valider ma commande',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Consumer<OrdersProvider>(
+                        builder: (context, ordersProvider, _) {
+                          return ElevatedButton(
+                            onPressed:
+                                ordersProvider.isLoading
+                                    ? null
+                                    : () => _handleValidateOrder(context, cart),
+                            child:
+                                ordersProvider.isLoading
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.blue,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text(
+                                      'Valider ma commande',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -1220,33 +1432,54 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     final addressData = await location.getAddressFromLocation();
     if (!mounted) return;
 
-    final request = CreateOrderRequest(
-      pharmacyId: firstItem.pharmacy.id,
-      items:
-          cart.items.values
-              .map(
-                (item) => CreateOrderItem(
-                  medicationId: item.medication.id,
-                  quantity: item.quantity,
-                ),
-              )
-              .toList(),
-      deliveryAddress:
-          addressData != null ? addressData['address'] : auth.user?.address,
-      deliveryCity: addressData != null ? addressData['city'] : auth.user?.city,
-      deliveryLatitude: location.userLocation?.latitude,
-      deliveryLongitude: location.userLocation?.longitude,
-      deliveryPhone: auth.user?.phone,
-    );
+    // Check if location is available
+    if (location.userLocation == null) {
+      if (!mounted) return;
+
+      // Try to get permission and location again
+      await location.ensureLocation();
+
+      if (location.userLocation == null) {
+        if (!mounted) return;
+        NotificationHelper.showError(
+          context,
+          location.error ?? 'La géolocalisation est requise pour la livraison',
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
 
     try {
+      final request = CreateOrderRequest(
+        pharmacyId: firstItem.pharmacy.id,
+        items:
+            cart.items.values
+                .map(
+                  (item) => CreateOrderItem(
+                    medicationId: item.medication.id,
+                    quantity: item.quantity,
+                  ),
+                )
+                .toList(),
+        deliveryAddress:
+            addressData != null ? addressData['address'] : auth.user?.address,
+        deliveryCity:
+            addressData != null ? addressData['city'] : auth.user?.city,
+        deliveryLatitude: location.userLocation?.latitude,
+        deliveryLongitude: location.userLocation?.longitude,
+        deliveryPhone: auth.user?.phone,
+      );
+
       await context.read<OrdersProvider>().createOrder(
         request,
         onOrderCreated: () async {
-          await context.read<NotificationProvider>().fetchNotifications();
+          // Success callback
         },
       );
       if (!mounted) return;
+
       cart.clear();
       NotificationHelper.showSuccess(
         context,
@@ -1263,6 +1496,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   Future<bool> _showPrescriptionUploadDialog(BuildContext context) async {
     final picker = ImagePicker();
     XFile? pickedFile;
+    bool isLoading = false;
 
     return await showDialog<bool>(
           context: context,
@@ -1319,7 +1553,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                               icon: const Icon(Icons.camera_alt),
                               label: const Text('Camera'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade600,
+                                backgroundColor: Colors.blue.shade700,
                               ),
                             ),
                             ElevatedButton.icon(
@@ -1334,7 +1568,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                               icon: const Icon(Icons.photo_library),
                               label: const Text('Galerie'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade600,
+                                backgroundColor: Colors.blue.shade700,
                               ),
                             ),
                           ],
@@ -1348,19 +1582,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                       ),
                       ElevatedButton(
                         onPressed:
-                            pickedFile == null
+                            (pickedFile == null || isLoading)
                                 ? null
                                 : () async {
+                                  setDialogState(() => isLoading = true);
                                   try {
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder:
-                                          (context) => const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                    );
-
                                     final formData = FormData.fromMap({
                                       'file': await MultipartFile.fromFile(
                                         pickedFile!.path,
@@ -1380,17 +1606,28 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                         .read<PrescriptionProvider>()
                                         .uploadPrescription(formData);
 
-                                    Navigator.pop(context);
+                                    if (!context.mounted) return;
                                     Navigator.pop(context, true);
                                   } catch (e) {
-                                    Navigator.pop(context);
+                                    if (!context.mounted) return;
+                                    setDialogState(() => isLoading = false);
                                     NotificationHelper.showError(
                                       context,
                                       'Erreur d\'upload: $e',
                                     );
                                   }
                                 },
-                        child: const Text('Confirmer & Continuer'),
+                        child:
+                            isLoading
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.blue,
+                                  ),
+                                )
+                                : const Text('Confirmer & Continuer'),
                       ),
                     ],
                   );
@@ -1422,6 +1659,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(5, (index) {
                         return IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                           icon: Icon(
                             index < selectedRating
                                 ? Icons.star
@@ -1453,9 +1692,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     child: const Text('Annuler'),
                   ),
                   ElevatedButton(
-                    style: ButtonStyle(
-                      fixedSize: WidgetStateProperty.all(const Size(100, 50)),
-                    ),
                     onPressed: () async {
                       try {
                         await context.read<ReviewProvider>().submitReview(
@@ -1482,7 +1718,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
-  Widget _buildHistoryView() {
+  Widget _buildOrdersView() {
     return Consumer<OrdersProvider>(
       builder: (context, ordersProvider, _) {
         if (ordersProvider.isLoading) {
@@ -1548,7 +1784,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Vous n\'avez pas encore passé de commande. Commandez un médicament pour voir votre historique ici.',
+                  'Vous n\'avez pas encore passé de commande. Commandez un médicament pour voir vos commandes ici.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
@@ -1594,22 +1830,11 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       elevation: 2,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          final pname = Provider.of<OrdersProvider>(
+        onTap: () {
+          Navigator.pushNamed(
             context,
-            listen: false,
-          ).pharmacyNameFor(order.pharmacyId);
-          // Précharger les avis
-          context.read<ReviewProvider>().fetchPharmacyReviews(order.pharmacyId);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (_) => PharmacyReviewsScreen(
-                    pharmacyId: order.pharmacyId,
-                    pharmacyName: pname,
-                  ),
-            ),
+            '/orders/details',
+            arguments: {'orderId': order.id, 'orderNumber': order.id},
           );
         },
         child: Padding(
@@ -1664,6 +1889,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                         ),
                       );
                     },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade50,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                     icon: const Icon(Icons.star, size: 16),
                     label: const Text('Avis'),
                   ),
@@ -1710,6 +1942,13 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () => _showReviewDialog(context, order),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide.none,
+                      backgroundColor: Colors.blue.shade50,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                     icon: const Icon(Icons.star_border),
                     label: const Text('Laisser un avis'),
                   ),
@@ -1742,6 +1981,4 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         return Colors.red.shade700;
     }
   }
-
-  // _formatDate removed (unused)
 }

@@ -236,14 +236,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: _fillLocation,
                     icon: const Icon(Icons.location_on, size: 18),
                     label: const Text('Utiliser ma position actuelle'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue.shade700,
-                      side: BorderSide(color: Colors.blue.shade700),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -301,9 +293,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Register Button
                   ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
                     child:
                         authProvider.isLoading
                             ? SizedBox(
