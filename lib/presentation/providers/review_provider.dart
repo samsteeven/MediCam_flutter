@@ -15,16 +15,13 @@ class ReviewProvider extends ChangeNotifier {
 
   ReviewProvider(this._repository);
 
-  Future<void> fetchPharmacyReviews(String pharmacyId, {String? status}) async {
+  Future<void> fetchPharmacyReviews(String pharmacyId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _pharmacyReviews = await _repository.fetchPharmacyReviews(
-        pharmacyId,
-        status: status,
-      );
+      _pharmacyReviews = await _repository.fetchPharmacyReviews(pharmacyId);
     } catch (e) {
       _errorMessage = e.toString();
       _pharmacyReviews = [];
@@ -54,10 +51,9 @@ class ReviewProvider extends ChangeNotifier {
 
       await _repository.submitReview(payload);
 
-      // Refresh approved reviews so the user sees everyone else's feedback.
-      // Newly created review will be PENDING, so it might not show up
-      // in the APPROVED list immediately unless moderated.
-      await fetchPharmacyReviews(pharmacyId, status: 'APPROVED');
+      // Refresh reviews so the user sees everyone else's feedback.
+      // Backend returns APPROVED reviews + user's own review (even if PENDING)
+      await fetchPharmacyReviews(pharmacyId);
     } catch (e) {
       _errorMessage = e.toString();
       rethrow;
@@ -74,8 +70,8 @@ class ReviewProvider extends ChangeNotifier {
 
     try {
       await _repository.deleteReview(reviewId);
-      // Refresh approved list after deletion
-      await fetchPharmacyReviews(pharmacyId, status: 'APPROVED');
+      // Refresh reviews after deletion
+      await fetchPharmacyReviews(pharmacyId);
     } catch (e) {
       _errorMessage = e.toString();
       rethrow;

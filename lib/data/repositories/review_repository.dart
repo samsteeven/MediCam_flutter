@@ -1,23 +1,19 @@
-import 'package:dio/dio.dart';
 import 'package:easypharma_flutter/core/constants/api_constants.dart';
+import 'package:easypharma_flutter/core/services/api_service.dart';
 import 'package:easypharma_flutter/data/models/review_model.dart';
 import 'package:flutter/material.dart';
 
 class ReviewRepository {
-  final Dio _dio;
+  final ApiService _apiService;
 
-  ReviewRepository(this._dio);
+  ReviewRepository(this._apiService);
 
   /// Lister les avis d'une pharmacie
   /// GET /api/v1/reviews/pharmacy/{pharmacyId}
-  Future<List<Review>> fetchPharmacyReviews(
-    String pharmacyId, {
-    String? status,
-  }) async {
+  Future<List<Review>> fetchPharmacyReviews(String pharmacyId) async {
     try {
-      final response = await _dio.get(
+      final response = await _apiService.get(
         ApiConstants.pharmacyReviews(pharmacyId),
-        queryParameters: status != null ? {'status': status} : null,
       );
       if (response.statusCode == 200) {
         final List<dynamic> data =
@@ -27,8 +23,8 @@ class ReviewRepository {
             .toList();
       }
       return [];
-    } on DioException catch (e) {
-      throw Exception('Erreur réseau: ${e.message}');
+    } catch (e) {
+      throw Exception('Erreur de chargement des avis: $e');
     }
   }
 
@@ -36,34 +32,20 @@ class ReviewRepository {
   /// POST /api/v1/reviews
   Future<void> submitReview(Map<String, dynamic> reviewData) async {
     try {
-      // Debug: log payload and server response to help diagnose missing reviews
-      // Keep signature as Future<void> to avoid API changes across the app
-      // Note: logs will appear in the app console (debugPrint)
       debugPrint('ReviewRepository.submitReview - payload: $reviewData');
-      final response = await _dio.post(ApiConstants.reviews, data: reviewData);
-      debugPrint(
-        'ReviewRepository.submitReview - status: ${response.statusCode}',
-      );
-      debugPrint('ReviewRepository.submitReview - response: ${response.data}');
-    } on DioException catch (e) {
-      debugPrint('ReviewRepository.submitReview - error: ${e.message}');
-      debugPrint(
-        'ReviewRepository.submitReview - error response: ${e.response?.statusCode} ${e.response?.data}',
-      );
+      await _apiService.post(ApiConstants.reviews, data: reviewData);
+      debugPrint('ReviewRepository.submitReview - success');
+    } catch (e) {
+      debugPrint('ReviewRepository.submitReview - error: $e');
 
-      // Try to detect DB unique-constraint / duplicate-review errors and return a clear message
-      final respData = e.response?.data;
-      final respStr =
-          respData != null
-              ? respData.toString().toLowerCase()
-              : (e.message?.toLowerCase() ?? '');
-      if (respStr.contains('duplicate') ||
-          respStr.contains('dupliq') ||
-          respStr.contains('uksbkc')) {
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('duplicate') ||
+          errorStr.contains('dupliq') ||
+          errorStr.contains('uksbkc') ||
+          errorStr.contains('alread')) {
         throw Exception('Vous avez déjà soumis un avis pour cette commande.');
       }
-
-      throw Exception('Erreur réseau: ${e.message}');
+      rethrow;
     }
   }
 
@@ -71,21 +53,21 @@ class ReviewRepository {
   /// PATCH /api/v1/reviews/{id}/status
   Future<void> moderateReview(String reviewId, String status) async {
     try {
-      await _dio.patch(
+      await _apiService.patch(
         ApiConstants.moderateReview(reviewId),
         data: {'status': status},
       );
-    } on DioException catch (e) {
-      throw Exception('Erreur réseau: ${e.message}');
+    } catch (e) {
+      throw Exception('Erreur moderation: $e');
     }
   }
 
   /// Supprimer un avis (utilisateur propriétaire)
   Future<void> deleteReview(String reviewId) async {
     try {
-      await _dio.delete(ApiConstants.reviewById(reviewId));
-    } on DioException catch (e) {
-      throw Exception('Erreur réseau: ${e.message}');
+      await _apiService.delete(ApiConstants.reviewById(reviewId));
+    } catch (e) {
+      throw Exception('Erreur suppression: $e');
     }
   }
 }

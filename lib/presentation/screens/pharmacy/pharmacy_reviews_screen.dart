@@ -23,11 +23,8 @@ class _PharmacyReviewsScreenState extends State<PharmacyReviewsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
-        // Default to showing approved reviews on open
-        context.read<ReviewProvider>().fetchPharmacyReviews(
-          widget.pharmacyId,
-          status: 'APPROVED',
-        );
+        // Fetch pharmacy reviews (backend returns APPROVED + user's own review)
+        context.read<ReviewProvider>().fetchPharmacyReviews(widget.pharmacyId);
       } catch (e) {
         debugPrint('Error fetching pharmacy reviews: $e');
       }

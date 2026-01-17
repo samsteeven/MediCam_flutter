@@ -29,16 +29,22 @@ class MedicationSearchBar extends StatefulWidget {
 
 class _MedicationSearchBarState extends State<MedicationSearchBar> {
   late TextEditingController _controller;
+  late TextEditingController _minPriceController;
+  late TextEditingController _maxPriceController;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _minPriceController = TextEditingController();
+    _maxPriceController = TextEditingController();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
     super.dispose();
   }
 
@@ -92,6 +98,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                     value,
                     userLat: widget.userLat,
                     userLon: widget.userLon,
+                    isFilterUpdate: false,
                   );
                 }
               },
@@ -114,6 +121,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                       _controller.text,
                       userLat: widget.userLat,
                       userLon: widget.userLon,
+                      isFilterUpdate: false,
                     );
                   } else {
                     NotificationHelper.showError(
@@ -140,8 +148,26 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
         medicationProvider.selectedTherapeuticClass;
     bool? localRequiresPrescription = medicationProvider.requiresPrescription;
     String? localAvailability = medicationProvider.availability;
-    double? localMinPrice = medicationProvider.minPrice;
-    double? localMaxPrice = medicationProvider.maxPrice;
+
+    // Préparez les controllers avec les valeurs actuelles (sans .0 si entier)
+    _minPriceController.text =
+        medicationProvider.minPrice != null
+            ? medicationProvider.minPrice!.toStringAsFixed(
+              medicationProvider.minPrice!.truncateToDouble() ==
+                      medicationProvider.minPrice
+                  ? 0
+                  : 1,
+            )
+            : '';
+    _maxPriceController.text =
+        medicationProvider.maxPrice != null
+            ? medicationProvider.maxPrice!.toStringAsFixed(
+              medicationProvider.maxPrice!.truncateToDouble() ==
+                      medicationProvider.maxPrice
+                  ? 0
+                  : 1,
+            )
+            : '';
 
     showModalBottomSheet(
       context: context,
@@ -181,8 +207,8 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                               localTherapeuticClass = null;
                               localRequiresPrescription = null;
                               localAvailability = null;
-                              localMinPrice = null;
-                              localMaxPrice = null;
+                              _minPriceController.clear();
+                              _maxPriceController.clear();
                             });
                           },
                           child: const Text('Réinitialiser'),
@@ -332,11 +358,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                               ),
                             ),
                             keyboardType: TextInputType.number,
-                            onChanged:
-                                (v) => localMinPrice = double.tryParse(v),
-                            controller: TextEditingController(
-                              text: localMinPrice?.toString() ?? '',
-                            ),
+                            controller: _minPriceController,
                           ),
                         ),
                         const Padding(
@@ -354,11 +376,7 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                               ),
                             ),
                             keyboardType: TextInputType.number,
-                            onChanged:
-                                (v) => localMaxPrice = double.tryParse(v),
-                            controller: TextEditingController(
-                              text: localMaxPrice?.toString() ?? '',
-                            ),
+                            controller: _maxPriceController,
                           ),
                         ),
                       ],
@@ -374,6 +392,29 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         onPressed: () {
+                          // Validation des prix
+                          final minPrice = double.tryParse(
+                            _minPriceController.text
+                                .replaceAll(RegExp(r'\s+'), '')
+                                .replaceAll(',', '.'),
+                          );
+                          final maxPrice = double.tryParse(
+                            _maxPriceController.text
+                                .replaceAll(RegExp(r'\s+'), '')
+                                .replaceAll(',', '.'),
+                          );
+
+                          // Vérifier la cohérence min/max
+                          if (minPrice != null &&
+                              maxPrice != null &&
+                              minPrice > maxPrice) {
+                            NotificationHelper.showError(
+                              context,
+                              'Le prix minimum ne peut pas être supérieur au prix maximum',
+                            );
+                            return;
+                          }
+
                           Navigator.pop(context);
                           medicationProvider.searchMedications(
                             _controller.text,
@@ -383,8 +424,9 @@ class _MedicationSearchBarState extends State<MedicationSearchBar> {
                             therapeuticClass: localTherapeuticClass,
                             requiresPrescription: localRequiresPrescription,
                             availability: localAvailability,
-                            minPrice: localMinPrice,
-                            maxPrice: localMaxPrice,
+                            minPrice: minPrice,
+                            maxPrice: maxPrice,
+                            isFilterUpdate: true,
                           );
                         },
                         child: const Text(
